@@ -1,10 +1,14 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python
 
 import json
 import os
 import string
 import sys
-from urllib.parse import urlparse, urlunparse
+
+try:
+    from urllib.parse import urlparse, urlunparse
+except:
+    from urlparse import urlparse, urlunparse
 
 # Lists from https://www.ietf.org/rfc/rfc1738.txt
 

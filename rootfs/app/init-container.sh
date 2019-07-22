@@ -23,7 +23,7 @@ SCRIPT_DIRECTORY=$(dirname ${0})
 # Short-circuit for certain commandline options.
 
 if [ "$1" == "--version" ]; then
-  echo "docker-entrypoint.sh version ${VERSION}"
+  echo "init-container.sh version ${VERSION}"
   exit ${OK}
 fi
 
@@ -47,25 +47,31 @@ fi
 
 PARSED_SENZING_DATABASE_URL=$(${SCRIPT_DIRECTORY}/parse_senzing_database_url.py)
 PROTOCOL=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output '.scheme')
+NETLOC=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output '.netloc')
 USERNAME=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output  '.username')
 PASSWORD=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output  '.password')
 HOST=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output  '.hostname')
 PORT=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output  '.port')
+DB_PATH=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output  '.path')
 SCHEMA=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output  '.schema')
 
 if [ ${DEBUG} -gt 0 ]; then
   echo "PROTOCOL: ${PROTOCOL}"
+  echo "  NETLOC: ${NETLOC}"
   echo "USERNAME: ${USERNAME}"
   echo "PASSWORD: ${PASSWORD}"
   echo "    HOST: ${HOST}"
   echo "    PORT: ${PORT}"
+  echo "    PATH: ${PATH}"
   echo "  SCHEMA: ${SCHEMA}"
 fi
 
 # Set NEW_SENZING_DATABASE_URL.
 
 NEW_SENZING_DATABASE_URL=""
-if [ "${PROTOCOL}" == "mysql" ]; then
+if [ "${PROTOCOL}" == "sqlite3" ]; then
+  NEW_SENZING_DATABASE_URL="${PROTOCOL}://${NETLOC}${DB_PATH}"
+elif [ "${PROTOCOL}" == "mysql" ]; then
   NEW_SENZING_DATABASE_URL="${PROTOCOL}://${USERNAME}:${PASSWORD}@${HOST}:${PORT}/?schema=${SCHEMA}"
 elif [ "${PROTOCOL}" == "postgresql" ]; then
   NEW_SENZING_DATABASE_URL="${PROTOCOL}://${USERNAME}:${PASSWORD}@${HOST}:${PORT}:${SCHEMA}/"
@@ -81,10 +87,18 @@ if [ ${DEBUG} -gt 0 ]; then
 fi
 
 # -----------------------------------------------------------------------------
+# Handle "sqlite3" protocol.
+# -----------------------------------------------------------------------------
+
+if [ "${PROTOCOL}" == "sqlite3" ]; then
+
+  true  # Need a statement in bash if/else
+
+# -----------------------------------------------------------------------------
 # Handle "mysql" protocol.
 # -----------------------------------------------------------------------------
 
-if [ "${PROTOCOL}" == "mysql" ]; then
+elif [ "${PROTOCOL}" == "mysql" ]; then
 
   # Make temporary directory in SENZING_ROOT.
 
@@ -128,27 +142,37 @@ elif [ "${PROTOCOL}" == "db2" ]; then
     -e "s/{SCHEMA}/${SCHEMA}/g" \
     ${SENZING_ROOT}/db2/clidriver/cfg/db2dsdriver.cfg
 
+  if [ ${DEBUG} -gt 0 ]; then
+    echo "---------- ${SENZING_ROOT}/db2/clidriver/cfg/db2dsdriver.cfg -------------------------"
+    cat ${SENZING_ROOT}/db2/clidriver/cfg/db2dsdriver.cfg
+  fi
+
 fi
 
 # -----------------------------------------------------------------------------
 # Handle common changes.
 # -----------------------------------------------------------------------------
 
+# G2Project.ini
+
 sed -i.$(date +%s) \
   -e "s|G2Connection=sqlite3://na:na@${SENZING_ROOT}/g2/sqldb/G2C.db|G2Connection=${NEW_SENZING_DATABASE_URL}|g" \
   ${SENZING_ROOT}/g2/python/G2Project.ini
+
+if [ ${DEBUG} -gt 0 ]; then
+  echo "---------- g2/python/G2Project.ini --------------------------------------------"
+  cat ${SENZING_ROOT}/g2/python/G2Project.ini
+fi
+
+# G2Module.ini
 
 sed -i.$(date +%s) \
   -e "s|CONNECTION=sqlite3://na:na@${SENZING_ROOT}/g2/sqldb/G2C.db|CONNECTION=${NEW_SENZING_DATABASE_URL}|g" \
   ${SENZING_ROOT}/g2/python/G2Module.ini
 
 if [ ${DEBUG} -gt 0 ]; then
-  echo "---------- g2/python/G2Project.ini --------------------------------------------"
-  cat ${SENZING_ROOT}/g2/python/G2Project.ini
   echo "---------- g2/python/G2Module.ini ---------------------------------------------"
   cat ${SENZING_ROOT}/g2/python/G2Module.ini
-  echo "---------- ${SENZING_ROOT}/db2/clidriver/cfg/db2dsdriver.cfg -------------------------"
-  cat ${SENZING_ROOT}/db2/clidriver/cfg/db2dsdriver.cfg
   echo "-------------------------------------------------------------------------------"
 fi
 

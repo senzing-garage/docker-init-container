@@ -1,9 +1,9 @@
-# docker-template
+# docker-init-contaner
 
 ## Overview
 
-This repository shows best practices for creating a `docker-*` repository.
-See [best practices](docs/best-practices.md).
+The `senzing/init-container` performs all of the Senzing initializations which require `root` permission.
+The initializations are seen in the [init-container.sh](rootfs/app/init-container.sh) script.
 
 ### Contents
 
@@ -12,7 +12,6 @@ See [best practices](docs/best-practices.md).
     1. [Time](#time)
     1. [Background knowledge](#background-knowledge)
 1. [Demonstrate](#demonstrate)
-    1. [Build docker image](#build-docker-image)
     1. [Create SENZING_DIR](#create-senzing_dir)
     1. [Configuration](#configuration)
     1. [Run docker container](#run-docker-container)
@@ -42,14 +41,6 @@ This repository assumes a working knowledge of:
 
 ## Demonstrate
 
-### Build docker image
-
-1. Using docker command and GitHub.  Example:
-
-    ```console
-    sudo docker build --tag senzing/template https://github.com/senzing/docker-template.git
-    ```
-
 ### Create SENZING_DIR
 
 1. If `/opt/senzing` directory is not on local system, visit
@@ -72,15 +63,6 @@ This repository assumes a working knowledge of:
 
 ### Run docker container
 
-1. :pencil2: Determine docker network.  Example:
-
-    ```console
-    sudo docker network ls
-
-    # Choose value from NAME column of docker network ls
-    export SENZING_NETWORK=nameofthe_network
-    ```
-
 1. :pencil2: Set environment variables.  Example:
 
     ```console
@@ -101,11 +83,10 @@ This repository assumes a working knowledge of:
     sudo docker run \
       --env SENZING_DATABASE_URL="${SENZING_DATABASE_URL}" \
       --interactive \
-      --net ${SENZING_NETWORK} \
       --rm \
       --tty \
       --volume ${SENZING_DIR}:/opt/senzing \
-      senzing/template
+      senzing/init-container
     ```
 
 ## Develop
@@ -124,7 +105,7 @@ The following software programs need to be installed:
 
     ```console
     export GIT_ACCOUNT=senzing
-    export GIT_REPOSITORY=docker-template
+    export GIT_REPOSITORY=docker-init-container
     ```
 
 1. Follow steps in [clone-repository](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/clone-repository.md) to install the Git repository.
@@ -141,14 +122,14 @@ The following software programs need to be installed:
 1. Option #1 - Using `docker` command and GitHub.
 
     ```console
-    sudo docker build --tag senzing/template https://github.com/senzing/docker-template.git
+    sudo docker build --tag senzing/init-container https://github.com/senzing/docker-init-container.git
     ```
 
 1. Option #2 - Using `docker` command and local repository.
 
     ```console
     cd ${GIT_REPOSITORY_DIR}
-    sudo docker build --tag senzing/template .
+    sudo docker build --tag senzing/init-container .
     ```
 
 1. Option #3 - Using `make` command.
@@ -159,11 +140,6 @@ The following software programs need to be installed:
     ```
 
 ## Examples
-
-1. Examples of use:
-    1. [docker-compose-stream-loader-kafka-demo](https://github.com/Senzing/docker-compose-stream-loader-kafka-demo)
-    1. [kubernetes-demo](https://github.com/Senzing/kubernetes-demo)
-    1. [rancher-demo](https://github.com/Senzing/rancher-demo/tree/master/docs/db2-cluster-demo.md)
 
 ## Errors
 
