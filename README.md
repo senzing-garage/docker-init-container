@@ -5,6 +5,10 @@
 The `senzing/init-container` performs all of the Senzing initializations which require `root` permission.
 The initializations are seen in the [init-container.sh](rootfs/app/init-container.sh) script.
 
+It has the following applications:
+
+1. **Kubernetes** - as an `initContainer`.
+
 ### Contents
 
 1. [Expectations](#expectations)
