@@ -27,6 +27,18 @@ if [ "$1" == "--version" ]; then
   exit ${OK}
 fi
 
+# If SENZING_INIT_CONTAINER_SLEEP is specified, sleep before executing.
+
+if [ -n "${SENZING_INIT_CONTAINER_SLEEP}" ]; then
+  if [ ${SENZING_INIT_CONTAINER_SLEEP} -gt 0 ]; then
+    echo "init-container.sh sleeping ${SENZING_INIT_CONTAINER_SLEEP} seconds before execution."
+    sleep ${SENZING_INIT_CONTAINER_SLEEP}
+  else
+    echo "init-container.sh sleeping infinitely."
+    sleep infinity
+  fi
+fi
+
 # Exit if one-time initialization has been previously performed.
 
 if [ -f ${SENTINEL_FILE} ]; then
@@ -45,7 +57,7 @@ fi
 
 # Parse the SENZING_DATABASE_URL.
 
-PARSED_SENZING_DATABASE_URL=$(${SCRIPT_DIRECTORY}/parse_senzing_database_url.py)
+PARSED_SENZING_DATABASE_URL=$(${SCRIPT_DIRECTORY}/parse-senzing-database-url.py)
 PROTOCOL=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output '.scheme')
 NETLOC=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output '.netloc')
 USERNAME=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output  '.username')
@@ -62,7 +74,7 @@ if [ ${DEBUG} -gt 0 ]; then
   echo "PASSWORD: ${PASSWORD}"
   echo "    HOST: ${HOST}"
   echo "    PORT: ${PORT}"
-  echo "    PATH: ${PATH}"
+  echo "    PATH: ${DB_PATH}"
   echo "  SCHEMA: ${SCHEMA}"
 fi
 
@@ -175,6 +187,10 @@ if [ ${DEBUG} -gt 0 ]; then
   cat ${SENZING_ROOT}/g2/python/G2Module.ini
   echo "-------------------------------------------------------------------------------"
 fi
+
+# Initialize Senzing G2 database SYS_CFG table.
+
+${SCRIPT_DIRECTORY}/g2-configuration-initializer.py initialize
 
 # -----------------------------------------------------------------------------
 # Epilog
