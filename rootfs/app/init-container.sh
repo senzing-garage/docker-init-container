@@ -62,7 +62,7 @@ if [ ${DEBUG} -gt 0 ]; then
   echo "PASSWORD: ${PASSWORD}"
   echo "    HOST: ${HOST}"
   echo "    PORT: ${PORT}"
-  echo "    PATH: ${PATH}"
+  echo "    PATH: ${DB_PATH}"
   echo "  SCHEMA: ${SCHEMA}"
 fi
 
