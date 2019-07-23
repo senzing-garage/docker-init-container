@@ -9,6 +9,10 @@ LABEL Name="senzing/init-container" \
 
 HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
+# Init container runs as "root".
+
+USER root
+
 # Copy files from repository.
 
 COPY ./rootfs /
