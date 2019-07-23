@@ -26,7 +26,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"
 __date__ = '2019-07-16'
-__updated__ = '2019-07-17'
+__updated__ = '2019-07-23'
 
 SENZING_PRODUCT_ID = "5005"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -108,11 +108,15 @@ def get_parser():
     subparser_2.add_argument("--debug", dest="debug", action="store_true", help="Enable debugging. (SENZING_DEBUG) Default: False")
     subparser_2.add_argument("--support-path", dest="support_path", metavar="SENZING_SUPPORT_PATH", help="Location of Senzing's support. Default: /opt/senzing/g2/data")
 
-    subparser_2 = subparsers.add_parser('list-datasources', help='List datasources.')
-    subparser_2.add_argument("--config-path", dest="config_path", metavar="SENZING_CONFIG_PATH", help="Location of Senzing's configuration template. Default: /opt/senzing/g2/data")
-    subparser_2.add_argument("--database-url", dest="g2_database_url_generic", metavar="SENZING_DATABASE_URL", help="Information for connecting to database.")
-    subparser_2.add_argument("--debug", dest="debug", action="store_true", help="Enable debugging. (SENZING_DEBUG) Default: False")
-    subparser_2.add_argument("--support-path", dest="support_path", metavar="SENZING_SUPPORT_PATH", help="Location of Senzing's support. Default: /opt/senzing/g2/data")
+    subparser_3 = subparsers.add_parser('list-datasources', help='List datasources.')
+    subparser_3.add_argument("--config-path", dest="config_path", metavar="SENZING_CONFIG_PATH", help="Location of Senzing's configuration template. Default: /opt/senzing/g2/data")
+    subparser_3.add_argument("--database-url", dest="g2_database_url_generic", metavar="SENZING_DATABASE_URL", help="Information for connecting to database.")
+    subparser_3.add_argument("--debug", dest="debug", action="store_true", help="Enable debugging. (SENZING_DEBUG) Default: False")
+    subparser_3.add_argument("--support-path", dest="support_path", metavar="SENZING_SUPPORT_PATH", help="Location of Senzing's support. Default: /opt/senzing/g2/data")
+
+    subparser_4 = subparsers.add_parser('wait-for-database', help='Wait until database is active.')
+    subparser_4.add_argument("--database-url", dest="g2_database_url_generic", metavar="SENZING_DATABASE_URL", help="Information for connecting to database.")
+    subparser_4.add_argument("--debug", dest="debug", action="store_true", help="Enable debugging. (SENZING_DEBUG) Default: False")
 
     subparser_8 = subparsers.add_parser('sleep', help='Do nothing but sleep. For Docker testing.')
     subparser_8.add_argument("--sleep-time-in-seconds", dest="sleep_time_in_seconds", metavar="SENZING_SLEEP_TIME_IN_SECONDS", help="Sleep time in seconds. DEFAULT: 0 (infinite)")
@@ -139,6 +143,7 @@ message_dictionary = {
     "102": "Exit {0}",
     "103": "Sleeping {0} seconds.",
     "104": "Sleeping infinitely.",
+    "105": "Waiting for database connection to {0}. Sleeping {1} seconds.",
     "110": "Default configuration already exists. SYS_CFG.CONFIG_DATA_ID = {0}. No modification needed.",
     "111": "New configuration created. SYS_CFG.CONFIG_DATA_ID = {0}",
     "112": "Configurations: {0}",
@@ -281,6 +286,8 @@ def get_configuration(args):
     # Special case:  Tailored database URL
 
     result['g2_database_url_specific'] = get_g2_database_url_specific(result.get("g2_database_url_generic"))
+    result['g2_database_url_generic_redacted'] = get_g2_database_url_redacted(result.get("g2_database_url_generic"))
+    result['g2_database_url_specific_redacted'] = get_g2_database_url_redacted(result.get("g2_database_url_generic"))
 
     return result
 
@@ -353,10 +360,7 @@ def entry_template(config):
     ''' Format of entry message. '''
     debug = config.get("debug", False)
     config['start_time'] = time.time()
-    if debug:
-        final_config = config
-    else:
-        final_config = redact_configuration(config)
+    final_config = redact_configuration(config)
     config_json = json.dumps(final_config, sort_keys=True)
     return message_info(101, config_json)
 
@@ -367,10 +371,7 @@ def exit_template(config):
     stop_time = time.time()
     config['stop_time'] = stop_time
     config['elapsed_time'] = stop_time - config.get('start_time', stop_time)
-    if debug:
-        final_config = config
-    else:
-        final_config = redact_configuration(config)
+    final_config = redact_configuration(config)
     config_json = json.dumps(final_config, sort_keys=True)
     return message_info(102, config_json)
 
@@ -499,6 +500,26 @@ def get_g2_database_url_specific(generic_database_url):
         result = "{scheme}://{username}:{password}@{schema}".format(**parsed_database_url)
     elif scheme in ['sqlite3']:
         result = "{scheme}://{netloc}{path}".format(**parsed_database_url)
+    else:
+        logging.error(message_error(501, scheme, generic_database_url))
+
+    return result
+
+
+def get_g2_database_url_redacted(generic_database_url):
+    result = ""
+
+    parsed_database_url = parse_database_url(generic_database_url)
+    scheme = parsed_database_url.get('scheme')
+
+    if scheme in ['mysql']:
+        result = "{scheme}://xxxxxxxx:xxxxxxxx@{hostname}:{port}/?schema={schema}".format(**parsed_database_url)
+    elif scheme in ['postgresql']:
+        result = "{scheme}://xxxxxxxx:xxxxxxxx@{hostname}:{port}:{schema}/".format(**parsed_database_url)
+    elif scheme in ['db2']:
+        result = "{scheme}://xxxxxxxx:xxxxxxxx@{schema}".format(**parsed_database_url)
+    elif scheme in ['sqlite3']:
+        result = "{scheme}://xxxxxxxx:xxxxxxxx@{path}".format(**parsed_database_url)
     else:
         logging.error(message_error(501, scheme, generic_database_url))
 
@@ -784,6 +805,48 @@ def do_version(args):
     ''' Log version information. '''
 
     logging.info(message_info(197, __version__, __updated__))
+
+
+def do_wait_for_database(args):
+    ''' Return after database connection is established. '''
+
+    # Get context from CLI, environment variables, and ini files.
+
+    config = get_configuration(args)
+    validate_configuration(config)
+
+    # Prolog.
+
+    logging.info(entry_template(config))
+
+    # Pull values from configuration.
+
+    sleep_time_in_seconds = config.get('sleep_time_in_seconds')
+    g2_database_url_specific_redacted = config.get('g2_database_url_specific_redacted')
+
+    # Adjust sleep time if "0" default.
+
+    if sleep_time_in_seconds <= 0:
+        sleep_time_in_seconds = 15
+
+    # See if G2 can access the database.
+
+    g2_configuration_manager_name = "configuration-initializer-G2-configuration-manager"
+    g2_configuration_json = get_g2_configuration_json(config)
+    not_connected = True
+    while not_connected:
+        try:
+            g2_configuration_manager = G2ConfigMgr()
+            g2_configuration_manager.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
+        except Exception as err:
+            not_connected = True
+            g2_configuration_manager.destroy()
+            logging.info(message_info(105, g2_database_url_specific_redacted, sleep_time_in_seconds))
+            time.sleep(sleep_time_in_seconds)
+
+    # Epilog.
+
+    logging.info(exit_template(config))
 
 # -----------------------------------------------------------------------------
 # Main

@@ -27,6 +27,18 @@ if [ "$1" == "--version" ]; then
   exit ${OK}
 fi
 
+# If SENZING_INIT_CONTAINER_SLEEP is specified, sleep before executing.
+
+if [ -n "${SENZING_INIT_CONTAINER_SLEEP}" ]; then
+  if [ ${SENZING_INIT_CONTAINER_SLEEP} -gt 0 ]; then
+    echo "init-container.sh sleeping ${SENZING_INIT_CONTAINER_SLEEP} seconds before execution."
+    sleep ${SENZING_INIT_CONTAINER_SLEEP}
+  else
+    echo "init-container.sh sleeping infinitely."
+    sleep infinity
+  fi
+fi
+
 # Exit if one-time initialization has been previously performed.
 
 if [ -f ${SENTINEL_FILE} ]; then
