@@ -45,7 +45,7 @@ fi
 
 # Parse the SENZING_DATABASE_URL.
 
-PARSED_SENZING_DATABASE_URL=$(${SCRIPT_DIRECTORY}/parse_senzing_database_url.py)
+PARSED_SENZING_DATABASE_URL=$(${SCRIPT_DIRECTORY}/parse-senzing-database-url.py)
 PROTOCOL=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output '.scheme')
 NETLOC=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output '.netloc')
 USERNAME=$(echo ${PARSED_SENZING_DATABASE_URL} | jq --raw-output  '.username')
@@ -175,6 +175,10 @@ if [ ${DEBUG} -gt 0 ]; then
   cat ${SENZING_ROOT}/g2/python/G2Module.ini
   echo "-------------------------------------------------------------------------------"
 fi
+
+# Initialize Senzing G2 database SYS_CFG table.
+
+${SCRIPT_DIRECTORY}/g2-configuration-initializer.py initialize
 
 # -----------------------------------------------------------------------------
 # Epilog
