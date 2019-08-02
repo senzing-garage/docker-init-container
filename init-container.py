@@ -55,6 +55,11 @@ configuration_locator = {
         "env": "SENZING_G2_DIR",
         "cli": "g2-dir"
     },
+    "gid": {
+        "default": 1001,
+        "env": "SENZING_GID",
+        "cli": "gid"
+    },
     "sleep_time_in_seconds": {
         "default": 0,
         "env": "SENZING_SLEEP_TIME_IN_SECONDS",
@@ -63,6 +68,11 @@ configuration_locator = {
     "subcommand": {
         "default": None,
         "env": "SENZING_SUBCOMMAND",
+    },
+    "uid": {
+        "default": 1001,
+        "env": "SENZING_UID",
+        "cli": "uid"
     },
     "var_dir": {
         "default": "/var/opt/senzing",
@@ -107,6 +117,16 @@ def get_parser():
                     "dest": "g2_dir",
                     "metavar": "SENZING_G2_DIR",
                     "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
+                },
+                "--gid": {
+                    "dest": "gid",
+                    "metavar": "SENZING_GID",
+                    "help": "GID for file ownership. Default: 1001"
+                },
+                "--uid": {
+                    "dest": "uid",
+                    "metavar": "SENZING_UID",
+                    "help": "UID for file ownership. Default: 1001"
                 },
                 "--var-dir": {
                     "dest": "var_dir",
@@ -163,9 +183,10 @@ MESSAGE_DEBUG = 900
 
 message_dictionary = {
     "100": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}I",
-    "150": "Created file: {0}",
-    "152": "Changing permissions on {0} to {1:o}",
-    "153": "Copied file {0} to {1}",
+    "151": "{0} - Changed permissions from {1:o} to {2:o}",
+    "152": "{0} - Changed owner from {1} to {2}",
+    "153": "{0} - Changed group from {1} to {2}",
+    "154": "{0} - Created file by copying {1}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -439,7 +460,7 @@ def copy_template_files(config):
 
             if not os.path.exists(actual_file_path):
                 shutil.copyfile(template_file_path, actual_file_path)
-                logging.info(message_info(150, actual_file_path))
+                logging.info(message_info(154, actual_file_path, template_file_path))
             else:
                 logging.debug(message_debug(901, actual_file_path))
 
@@ -456,24 +477,32 @@ def copy_template_files(config):
         if not os.path.exists(target_file):
             source_file = file.get("source_file")
             shutil.copyfile(source_file, target_file)
-            logging.info(message_info(153, source_file, target_file))
+            logging.info(message_info(154, target_file, source_file))
 
 
 def change_file_permissions(config):
 
     var_dir = config.get("var_dir")
+    uid = config.get("uid")
+    gid = config.get("gid")
     files = [
         {
             "filename": "{0}/sqlite".format(var_dir),
-            "permissions": 0o777,
+            "permissions": 0o750,
+            "uid": uid,
+            "gid": gid,
         },
         {
             "filename": "{0}/sqlite/G2C.db".format(var_dir),
-            "permissions": 0o777,
+            "permissions": 0o750,
+            "uid": uid,
+            "gid": gid,
         },
         {
             "filename": "{0}/sqlite/G2C.db.template".format(var_dir),
-            "permissions": 0o555,
+            "permissions": 0o440,
+            "uid": uid,
+            "gid": gid,
         },
     ]
 
@@ -486,16 +515,32 @@ def change_file_permissions(config):
 
         if os.path.exists(filename):
 
-            # If requested and actual permissions differ,
+            # Get actual and requested file metadata.
 
             actual_file_permissions = os.stat(filename).st_mode & 0o777
+            actual_file_uid = os.stat(filename).st_uid
+            actual_file_gid = os.stat(filename).st_gid
             requested_file_permissions = file.get("permissions")
+            requested_file_uid = file.get("uid")
+            requested_file_gid = file.get("gid")
+
+            # Change permissions, if needed.
+
             if actual_file_permissions != requested_file_permissions:
-
-                # Change file permissions.
-
                 os.chmod(filename, requested_file_permissions)
-                logging.info(message_info(152, filename, requested_file_permissions))
+                logging.info(message_info(151, filename, actual_file_permissions, requested_file_permissions))
+
+            # Change ownership, if needed.
+
+            ownership_changed = False
+            if actual_file_uid != requested_file_uid:
+                ownership_changed = True
+                logging.info(message_info(152, filename, actual_file_uid, requested_file_uid))
+            if actual_file_gid != requested_file_gid:
+                ownership_changed = True
+                logging.info(message_info(153, filename, actual_file_gid, requested_file_gid))
+            if ownership_changed:
+                os.chown(filename, requested_file_uid, requested_file_gid)
 
 # -----------------------------------------------------------------------------
 # do_* functions
