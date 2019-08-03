@@ -17,7 +17,7 @@ The initializations are seen in the [init-container.py](init-container.py) scrip
     1. [Background knowledge](#background-knowledge)
 1. [Demonstrate using Docker](#demonstrate-using-docker)
     1. [Get docker image](#get-docker-image)
-    1. [Initialize Senzing](#initialize-senzing)
+    1. [Install Senzing](#install-senzing)
     1. [Configuration](#configuration)
     1. [Volumes](#volumes)
     1. [Run docker container](#run-docker-container)
@@ -63,10 +63,10 @@ This repository assumes a working knowledge of:
     sudo docker build --tag senzing/init-container https://github.com/senzing/docker-init-container.git
     ```
 
-### Initialize Senzing
+### Install Senzing
 
-1. If Senzing has not been initialized, visit
-   [HOWTO - Initialize Senzing](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/initialize-senzing.md).
+1. If Senzing files have not been installed, visit
+   [HOWTO - Install Senzing API](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-api.md#docker).
 
 ### Configuration
 
