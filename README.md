@@ -142,10 +142,8 @@ Create a folder for each output directory.
 
     sudo docker run \
       --env SENZING_DATABASE_URL="${SENZING_DATABASE_URL}" \
-      --interactive \
       --net ${SENZING_NETWORK} \
       --rm \
-      --tty \
       --volume ${SENZING_DATA_VERSION_DIR}:/opt/senzing/data \
       --volume ${SENZING_ETC_DIR}:/etc/opt/senzing \
       --volume ${SENZING_G2_DIR}:/opt/senzing/g2 \
