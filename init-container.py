@@ -84,6 +84,11 @@ configuration_locator = {
         "env": "SENZING_GID",
         "cli": "gid"
     },
+    "resource_path": {
+        "default": "/opt/senzing/g2/resources",
+        "env": "SENZING_RESOURCE_PATH",
+        "cli": "resource-path"
+    },
     "sleep_time_in_seconds": {
         "default": 0,
         "env": "SENZING_SLEEP_TIME_IN_SECONDS",
@@ -760,7 +765,9 @@ def copy_files(config):
 
     etc_dir = config.get("etc_dir")
     var_dir = config.get("var_dir")
+    config_path = config.get("config_path")
     support_path = config.get("support_path")
+    resource_path = config.get("resource_path")
 
     # Files to copy.
 
@@ -768,11 +775,16 @@ def copy_files(config):
         {
             "source_file": "{0}/sqlite/G2C.db".format(var_dir),
             "target_file": "{0}/sqlite/G2C.db.template".format(var_dir),
-        },
-        {
-            "source_file": "{0}/g2config.json".format(etc_dir),
-            "target_file": "{0}/g2config.json".format(support_path),
-        },
+         }, {
+            "source_file": "{0}/g2config.json.template".format(etc_dir),
+            "target_file": "{0}/g2config.json.template".format(config_path),
+        }, {
+            "source_file": "{0}/g2config.json.template".format(etc_dir),
+            "target_file": "{0}/g2config.json.template".format(support_path),
+        }, {
+            "source_file": "{0}/g2config.json.template".format(etc_dir),
+            "target_file": "{0}/g2config.json.template".format(resource_path),
+        }
     ]
 
     # Copy files.
@@ -808,6 +820,21 @@ def copy_template_files(config):
                 logging.debug(message_debug(901, actual_file_path))
 
 
+    # Files to copy.
+
+    files = [
+        "{0}/g2config.json".format(etc_dir),
+    ]
+
+    # Copy files.
+
+    for file in files:
+        if  os.path.exists(file):
+            os.remove(file)
+            logging.info(message_info(155, file))
+
+
+
 def delete_files(config):
 
     # Get paths.
@@ -838,8 +865,9 @@ def get_g2_configuration_dictionary(config):
     ''' Construct a dictionary in the form of the old ini files. '''
     result = {
         "PIPELINE": {
+            "CONFIGPATH": config.get("config_path"),
+            "RESOURCEPATH": config.get("resource_path"),
             "SUPPORTPATH": config.get("support_path"),
-            "CONFIGPATH": config.get("config_path")
         },
         "SQL": {
             "CONNECTION": config.get("g2_database_url_specific"),
