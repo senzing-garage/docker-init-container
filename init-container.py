@@ -678,9 +678,16 @@ class G2Initializer:
 
 def change_file_permissions(config):
 
+    # Pull information from config.
+
+    etc_dir = config.get("etc_dir")
+    support_path = config.get("support_path")
     var_dir = config.get("var_dir")
     uid = config.get("uid")
     gid = config.get("gid")
+
+    # Identify file changes.
+
     files = [
         {
             "filename": "{0}/sqlite".format(var_dir),
@@ -700,6 +707,14 @@ def change_file_permissions(config):
             "uid": uid,
             "gid": gid,
         },
+        {
+            "filename": "{0}/g2config.json".format(etc_dir),
+            "permissions": 0o777,
+        },
+        {
+            "filename": "{0}/g2config.json".format(support_path),
+            "permissions": 0o777,
+        },
     ]
 
     # Work through list.
@@ -717,8 +732,8 @@ def change_file_permissions(config):
             actual_file_uid = os.stat(filename).st_uid
             actual_file_gid = os.stat(filename).st_gid
             requested_file_permissions = file.get("permissions")
-            requested_file_uid = file.get("uid")
-            requested_file_gid = file.get("gid")
+            requested_file_uid = file.get("uid", 0)
+            requested_file_gid = file.get("gid", 0)
 
             # Change permissions, if needed.
 
