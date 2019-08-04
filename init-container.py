@@ -783,7 +783,7 @@ def copy_files(config):
             "target_file": "{0}/g2config.json.template".format(support_path),
         }, {
             "source_file": "{0}/g2config.json.template".format(etc_dir),
-            "target_file": "{0}/g2config.json.template".format(resource_path),
+            "target_file": "{0}/templates/g2config.json.template".format(resource_path),
         }
     ]
 
@@ -793,6 +793,7 @@ def copy_files(config):
         target_file = file.get("target_file")
         if not os.path.exists(target_file):
             source_file = file.get("source_file")
+            os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copyfile(source_file, target_file)
             logging.info(message_info(154, target_file, source_file))
 
