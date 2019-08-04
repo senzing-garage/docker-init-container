@@ -643,9 +643,6 @@ class G2Initializer:
         # If there is no default configuration, create one in the 'configuration_bytearray' variable.
 
         config_handle = self.g2_config.create()
-
-        print("MJD config_handle:  {0}".format(config_handle))
-
         configuration_bytearray = bytearray()
         try:
             return_code = self.g2_config.save(config_handle, configuration_bytearray)
@@ -712,14 +709,6 @@ def change_file_permissions(config):
             "uid": uid,
             "gid": gid,
         },
-        {
-            "filename": "{0}/g2config.json".format(etc_dir),
-            "permissions": 0o777,
-        },
-        {
-            "filename": "{0}/g2config.json".format(support_path),
-            "permissions": 0o777,
-        },
     ]
 
     # Work through list.
@@ -775,12 +764,6 @@ def copy_files(config):
         {
             "source_file": "{0}/sqlite/G2C.db".format(var_dir),
             "target_file": "{0}/sqlite/G2C.db.template".format(var_dir),
-         }, {
-            "source_file": "{0}/g2config.json.template".format(etc_dir),
-            "target_file": "{0}/g2config.json.template".format(config_path),
-        }, {
-            "source_file": "{0}/g2config.json.template".format(etc_dir),
-            "target_file": "{0}/g2config.json.template".format(support_path),
         }, {
             "source_file": "{0}/g2config.json.template".format(etc_dir),
             "target_file": "{0}/templates/g2config.json.template".format(resource_path),
@@ -821,33 +804,16 @@ def copy_template_files(config):
                 logging.debug(message_debug(901, actual_file_path))
 
 
-    # Files to copy.
-
-    files = [
-        "{0}/g2config.json".format(etc_dir),
-    ]
-
-    # Copy files.
-
-    for file in files:
-        if  os.path.exists(file):
-            os.remove(file)
-            logging.info(message_info(155, file))
-
-
-
 def delete_files(config):
 
     # Get paths.
 
     etc_dir = config.get("etc_dir")
-    support_path = config.get("support_path")
 
     # Files to copy.
 
     files = [
         "{0}/g2config.json".format(etc_dir),
-        "{0}/g2config.json".format(support_path),
     ]
 
     # Copy files.
@@ -891,9 +857,6 @@ def get_g2_config(config, g2_config_name="init-container-G2-config"):
 
     try:
         g2_configuration_json = get_g2_configuration_json(config)
-
-        print("MJD g2_configuration_json: {0}".format(g2_configuration_json))
-
         result = G2Config()
         result.initV2(g2_config_name, g2_configuration_json, config.get('debug', False))
     except G2Exception.G2ModuleException as err:
@@ -974,7 +937,7 @@ def do_initialize(args):
 
     # Cleanup.
 
-#     delete_files(config)
+    delete_files(config)
 
     # Epilog.
 
