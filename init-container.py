@@ -33,7 +33,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-08-03'
+__updated__ = '2019-08-04'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -55,7 +55,7 @@ reserved_character_list = [ ';', ',', '/', '?', ':', '@', '=', '&']
 
 configuration_locator = {
     "config_path": {
-        "default": "/opt/senzing/data",
+        "default": "/etc/opt/senzing",
         "env": "SENZING_CONFIG_PATH",
         "cli": "config-path"
     },
@@ -231,6 +231,7 @@ message_dictionary = {
     "152": "{0} - Changed owner from {1} to {2}",
     "153": "{0} - Changed group from {1} to {2}",
     "154": "{0} - Created file by copying {1}",
+    "155": "{0} - Deleted",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -414,6 +415,7 @@ def parse_database_url(original_senzing_database_url):
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
+
 
 def get_g2_database_url_specific(generic_database_url):
     ''' Given a canonical database URL, transform to the specific URL. '''
@@ -604,7 +606,6 @@ def exit_silently():
     ''' Exit program. '''
     sys.exit(1)
 
-
 # -----------------------------------------------------------------------------
 # Class: G2Client
 # -----------------------------------------------------------------------------
@@ -638,9 +639,7 @@ class G2Initializer:
 
         config_handle = self.g2_config.create()
 
-
         print("MJD config_handle:  {0}".format(config_handle))
-
 
         configuration_bytearray = bytearray()
         try:
@@ -672,50 +671,9 @@ class G2Initializer:
         if return_code != 0:
             raise Exception("G2ConfigMgr.setDefaultConfigID({0}) return code {1}".format(new_config_id, return_code)) from err
 
-
 # -----------------------------------------------------------------------------
 # worker functions
 # -----------------------------------------------------------------------------
-
-
-def copy_template_files(config):
-
-    # Review files in "/etc/opt/senzing" directory.
-
-    etc_dir = config.get("etc_dir")
-    var_dir = config.get("var_dir")
-
-    for template_file_name in os.listdir(etc_dir):
-
-        # Process only ".template" files.
-
-        if template_file_name.endswith(".template"):
-            template_file_path = os.path.join(etc_dir, template_file_name)
-            actual_file_name = Path(template_file_name).stem
-            actual_file_path = os.path.join(etc_dir, actual_file_name)
-
-            # If actual file doesn't exist, make it from template file.
-
-            if not os.path.exists(actual_file_path):
-                shutil.copyfile(template_file_path, actual_file_path)
-                logging.info(message_info(154, actual_file_path, template_file_path))
-            else:
-                logging.debug(message_debug(901, actual_file_path))
-
-    # Backup files.
-    files = [
-        {
-            "source_file": "{0}/sqlite/G2C.db".format(var_dir),
-            "target_file": "{0}/sqlite/G2C.db.template".format(var_dir),
-        },
-    ]
-
-    for file in files:
-        target_file = file.get("target_file")
-        if not os.path.exists(target_file):
-            source_file = file.get("source_file")
-            shutil.copyfile(source_file, target_file)
-            logging.info(message_info(154, target_file, source_file))
 
 
 def change_file_permissions(config):
@@ -779,6 +737,83 @@ def change_file_permissions(config):
                 logging.info(message_info(153, filename, actual_file_gid, requested_file_gid))
             if ownership_changed:
                 os.chown(filename, requested_file_uid, requested_file_gid)
+
+
+def copy_files(config):
+
+    # Get paths.
+
+    etc_dir = config.get("etc_dir")
+    var_dir = config.get("var_dir")
+    support_path = config.get("support_path")
+
+    # Files to copy.
+
+    files = [
+        {
+            "source_file": "{0}/sqlite/G2C.db".format(var_dir),
+            "target_file": "{0}/sqlite/G2C.db.template".format(var_dir),
+        },
+        {
+            "source_file": "{0}/g2config.json".format(etc_dir),
+            "target_file": "{0}/g2config.json".format(support_path),
+        },
+    ]
+
+    # Copy files.
+
+    for file in files:
+        target_file = file.get("target_file")
+        if not os.path.exists(target_file):
+            source_file = file.get("source_file")
+            shutil.copyfile(source_file, target_file)
+            logging.info(message_info(154, target_file, source_file))
+
+
+def copy_template_files(config):
+
+    # Review files in "/etc/opt/senzing" directory.
+
+    etc_dir = config.get("etc_dir")
+    for template_file_name in os.listdir(etc_dir):
+
+        # Process only ".template" files.
+
+        if template_file_name.endswith(".template"):
+            template_file_path = os.path.join(etc_dir, template_file_name)
+            actual_file_name = Path(template_file_name).stem
+            actual_file_path = os.path.join(etc_dir, actual_file_name)
+
+            # If actual file doesn't exist, make it from template file.
+
+            if not os.path.exists(actual_file_path):
+                shutil.copyfile(template_file_path, actual_file_path)
+                logging.info(message_info(154, actual_file_path, template_file_path))
+            else:
+                logging.debug(message_debug(901, actual_file_path))
+
+
+def delete_files(config):
+
+    # Get paths.
+
+    etc_dir = config.get("etc_dir")
+    support_path = config.get("support_path")
+
+    # Files to copy.
+
+    files = [
+        "{0}/g2config.json".format(etc_dir),
+        "{0}/g2config.json".format(support_path),
+    ]
+
+    # Copy files.
+
+    for file in files:
+        if  os.path.exists(file):
+            os.remove(file)
+            logging.info(message_info(155, file))
+
 # -----------------------------------------------------------------------------
 # Senzing services.
 # -----------------------------------------------------------------------------
@@ -812,6 +847,9 @@ def get_g2_config(config, g2_config_name="init-container-G2-config"):
 
     try:
         g2_configuration_json = get_g2_configuration_json(config)
+
+        print("MJD g2_configuration_json: {0}".format(g2_configuration_json))
+
         result = G2Config()
         result.initV2(g2_config_name, g2_configuration_json, config.get('debug', False))
     except G2Exception.G2ModuleException as err:
@@ -874,6 +912,7 @@ def do_initialize(args):
     # Manipulate files.
 
     copy_template_files(config)
+    copy_files(config)
     change_file_permissions(config)
 
     # Get Senzing resources.
@@ -888,6 +927,10 @@ def do_initialize(args):
         g2_initializer.initialize()
     except Exception as err:
         logging.error(message_error(701, err, type(err.__cause__), err.__cause__))
+
+    # Cleanup.
+
+#     delete_files(config)
 
     # Epilog.
 
