@@ -80,6 +80,11 @@ configuration_locator = {
         "env": "SENZING_GID",
         "cli": "gid"
     },
+    "init_container_sleep": {
+        "default": 0,
+        "env": "SENZING_INIT_CONTAINER_SLEEP",
+        "cli": "init-container-sleep"
+    },
     "resource_path": {
         "default": "/opt/senzing/g2/resources",
         "env": "SENZING_RESOURCE_PATH",
@@ -233,6 +238,7 @@ message_dictionary = {
     "153": "{0} - Changed group from {1} to {2}",
     "154": "{0} - Created file by copying {1}",
     "155": "{0} - Deleted",
+    "170": "Created new default config in SYS_CFG having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -618,7 +624,7 @@ class G2Initializer:
         self.g2_config = g2_config
         self.g2_configuration_manager = g2_configuration_manager
 
-    def initialize(self):
+    def create_default_config_id(self):
         ''' Initialize the G2 database. '''
 
         # Determine of a default/initial G2 configuration already exists.
@@ -634,7 +640,7 @@ class G2Initializer:
         # If a default configuration exists, there is nothing more to do.
 
         if default_config_id_bytearray:
-            return
+            return None
 
         # If there is no default configuration, create one in the 'configuration_bytearray' variable.
 
@@ -668,6 +674,8 @@ class G2Initializer:
             raise Exception("G2ConfigMgr.setDefaultConfigID({0}) failed".format(new_config_id)) from err
         if return_code != 0:
             raise Exception("G2ConfigMgr.setDefaultConfigID({0}) return code {1}".format(new_config_id, return_code)) from err
+
+        return new_config_id
 
 # -----------------------------------------------------------------------------
 # worker functions
@@ -912,6 +920,13 @@ def do_initialize(args):
 
     logging.info(entry_template(config))
 
+    # Sleep, if requested.
+
+    init_container_sleep = config.get("init_container_sleep")
+    if init_container_sleep > 0:
+        logging.info(message_info(296, init_container_sleep))
+        time.sleep(init_container_sleep)
+
     # Manipulate files.
 
     copy_template_files(config)
@@ -927,7 +942,9 @@ def do_initialize(args):
 
     g2_initializer = G2Initializer(g2_configuration_manager, g2_config)
     try:
-        g2_initializer.initialize()
+        default_config_id = g2_initializer.create_default_config_id()
+        if default_config_id:
+            logging.info(message_info(170, default_config_id.decode()))
     except Exception as err:
         logging.error(message_error(701, err, type(err.__cause__), err.__cause__))
 
