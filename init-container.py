@@ -80,6 +80,11 @@ configuration_locator = {
         "env": "SENZING_GID",
         "cli": "gid"
     },
+    "init_container_sleep": {
+        "default": 0,
+        "env": "SENZING_INIT_CONTAINER_SLEEP",
+        "cli": "init-container-sleep"
+    },
     "resource_path": {
         "default": "/opt/senzing/g2/resources",
         "env": "SENZING_RESOURCE_PATH",
@@ -911,6 +916,13 @@ def do_initialize(args):
     # Prolog.
 
     logging.info(entry_template(config))
+
+    # Sleep, if requested.
+
+    init_container_sleep = config.get("init_container_sleep")
+    if init_container_sleep > 0:
+        logging.info(message_info(296, init_container_sleep))
+        time.sleep(init_container_sleep)
 
     # Manipulate files.
 
