@@ -1,11 +1,11 @@
-ARG BASE_IMAGE=senzing/senzing-base:1.1.0
+ARG BASE_IMAGE=senzing/senzing-base:1.2.0
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2019-07-23
+ENV REFRESHED_AT=2019-08-05
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.1.0"
+      Version="1.2.0"
 
 HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
@@ -16,8 +16,10 @@ USER root
 # Copy files from repository.
 
 COPY ./rootfs /
+COPY init-container.py /app
 
 # Runtime execution.
 
 WORKDIR /app
-CMD ["/app/init-container.sh"]
+ENTRYPOINT ["/app/init-container.py"]
+CMD ["initialize"]
