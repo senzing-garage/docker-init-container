@@ -73,8 +73,7 @@ This repository assumes a working knowledge of:
 Configuration values specified by environment variable or command line parameter.
 
 - **[SENZING_DATA_VERSION_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_data_version_dir)**
-- **[SENZING_DATABASE_URL](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_database_url)** -
-    The default is to use the SQLite database.
+- **[SENZING_DATABASE_URL](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_database_url)**
 - **[SENZING_DEBUG](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_debug)**
 - **[SENZING_ETC_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_etc_dir)**
 - **[SENZING_G2_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_g2_dir)**
@@ -91,8 +90,8 @@ Create a folder for each output directory.
 
     ```console
     export SENZING_DATA_VERSION_DIR=/opt/senzing/data/1.0.0
-    export SENZING_G2_DIR=/opt/senzing/g2
     export SENZING_ETC_DIR=/etc/opt/senzing
+    export SENZING_G2_DIR=/opt/senzing/g2
     export SENZING_VAR_DIR=/var/opt/senzing
     ```
 
@@ -105,8 +104,8 @@ Create a folder for each output directory.
     export SENZING_VOLUME=/opt/my-senzing
 
     export SENZING_DATA_VERSION_DIR=${SENZING_VOLUME}/data/1.0.0
-    export SENZING_G2_DIR=${SENZING_VOLUME}/g2
     export SENZING_ETC_DIR=${SENZING_VOLUME}/etc
+    export SENZING_G2_DIR=${SENZING_VOLUME}/g2
     export SENZING_VAR_DIR=${SENZING_VOLUME}/var
     ```
 
