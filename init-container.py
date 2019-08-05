@@ -19,13 +19,9 @@ import string
 import sys
 import time
 
-from G2Config import G2Config
-from G2ConfigMgr import G2ConfigMgr
-
 try:
     from G2Config import G2Config
     from G2ConfigMgr import G2ConfigMgr
-#     from G2Engine import G2Engine
     import G2Exception
 except ImportError:
     pass
@@ -33,7 +29,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-08-04'
+__updated__ = '2019-08-05'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
