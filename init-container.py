@@ -933,8 +933,11 @@ def database_initialization_mysql(config):
     os.chmod(libmysqlclient, 0o755)
     logging.info(message_info(160, libmysqlclient, 0o755))
 
-    os.symlink(libmysqlclient, libmysqlclient_link)
-    logging.info(message_info(158, libmysqlclient_link, libmysqlclient))
+    try:
+        os.symlink(libmysqlclient, libmysqlclient_link)
+        logging.info(message_info(158, libmysqlclient_link, libmysqlclient))
+    except FileExistsError as err:
+        pass
 
 
 def database_initialization(config):
