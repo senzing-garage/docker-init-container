@@ -904,6 +904,11 @@ def delete_files(config):
             os.remove(file)
             logging.info(message_info(155, file))
 
+def database_initialization_db2(config):
+
+    ::: MJD Start here.
+
+    pass
 
 def database_initialization_mysql(config):
 
@@ -959,7 +964,7 @@ def database_initialization(config):
     elif scheme in ['postgresql']:
         pass
     elif scheme in ['db2']:
-        pass
+        result = database_initialization_db2(config)
     elif scheme in ['sqlite3']:
         pass
     else:
