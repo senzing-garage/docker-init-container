@@ -4,14 +4,14 @@
 # python-template.py Example python skeleton.
 # -----------------------------------------------------------------------------
 
-from glob import glob
+from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 import argparse
+import configparser
 import json
 import linecache
 import logging
 import os
-from pathlib import Path
 import shutil
 import signal
 import stat
@@ -29,7 +29,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-08-05'
+__updated__ = '2019-08-06'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -238,6 +238,7 @@ message_dictionary = {
     "153": "{0} - Changed group from {1} to {2}",
     "154": "{0} - Created file by copying {1}",
     "155": "{0} - Deleted",
+    "156": "{0} - Modified. {1}",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
@@ -752,6 +753,68 @@ def change_file_permissions(config):
                 os.chown(filename, requested_file_uid, requested_file_gid)
 
 
+def change_module_ini(config):
+
+    etc_dir = config.get("etc_dir")
+    new_database_url = config.get('g2_database_url_specific')
+
+    # Read G2Module.ini.
+
+    filename = "{0}/G2Module.ini".format(etc_dir)
+    config_parser = configparser.ConfigParser()
+    config_parser.optionxform=str   # Maintain case of keys.
+    config_parser.read(filename)
+
+    # Used to remember if contents change.
+
+    changed = False
+
+    # Check SQL.CONNECTION.
+
+    old_database_url = config_parser.get('SQL', 'CONNECTION')
+    if new_database_url != old_database_url:
+        changed = True
+        config_parser['SQL']['CONNECTION'] = new_database_url
+        messsage = "Changed SQL.CONNECTION to {0}".format(new_database_url)
+        logging.info(message_info(156, filename, messsage))
+
+    # Write out contents.
+
+    if changed:
+        with open(filename, 'w') as output_file:
+            config_parser.write(output_file)
+
+def change_project_ini(config):
+
+    etc_dir = config.get("etc_dir")
+    new_database_url = config.get('g2_database_url_specific')
+
+    # Read G2Project.ini.
+
+    filename = "{0}/G2Project.ini".format(etc_dir)
+    config_parser = configparser.ConfigParser()
+    config_parser.optionxform=str   # Maintain case of keys
+    config_parser.read(filename)
+
+    # Used to remember if contents change.
+
+    changed = False
+
+    # Check SQL.CONNECTION.
+
+    old_database_url = config_parser.get('g2', 'G2Connection')
+    if new_database_url != old_database_url:
+        changed = True
+        config_parser['g2']['G2Connection'] = new_database_url
+        messsage = "Changed g2.G2Connection to {0}".format(new_database_url)
+        logging.info(message_info(156, filename, messsage))
+
+    # Write out contents.
+
+    if changed:
+        with open(filename, 'w') as output_file:
+            config_parser.write(output_file)
+
 def copy_files(config):
 
     # Get paths.
@@ -932,6 +995,11 @@ def do_initialize(args):
     copy_template_files(config)
     copy_files(config)
     change_file_permissions(config)
+
+    # Change ini files
+
+    change_module_ini(config)
+    change_project_ini(config)
 
     # Get Senzing resources.
 
