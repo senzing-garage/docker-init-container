@@ -248,7 +248,6 @@ message_dictionary = {
     "157": "{0} - Created file",
     "158": "{0} - Created symlink to {1}",
     "159": "{0} - Downloaded from {1}",
-    "160": "{0} - Changed permissions to {1:o}",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
@@ -915,29 +914,34 @@ def database_initialization_mysql(config):
 
     # Download the file.
 
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with urllib.request.urlopen(url) as response:
-        with open(filename, 'wb') as out_file:
-            shutil.copyfileobj(response, out_file)
-            logging.info(message_info(159, filename, url))
+    if not os.path.exists(filename):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with urllib.request.urlopen(url) as response:
+            with open(filename, 'wb') as out_file:
+                shutil.copyfileobj(response, out_file)
+                logging.info(message_info(159, filename, url))
 
     # Create file using "dpkg".
 
-    command = "dpkg --fsys-tarfile /opt/senzing/g2/download/libmysqlclient.deb | tar xOf - ./usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.0.16  > {0}".format(libmysqlclient)
-    os.environ["DEBIAN_FRONTEND"] = "noninteractive"
-    os.system(command)
-    logging.info(message_info(157, libmysqlclient))
+    if not os.path.exists(libmysqlclient):
+        command = "dpkg --fsys-tarfile /opt/senzing/g2/download/libmysqlclient.deb | tar xOf - ./usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.0.16  > {0}".format(libmysqlclient)
+        os.environ["DEBIAN_FRONTEND"] = "noninteractive"
+        os.system(command)
+        logging.info(message_info(157, libmysqlclient))
 
-    # Change permissions and make a soft link.
+    # Change file permissions.
 
-    os.chmod(libmysqlclient, 0o755)
-    logging.info(message_info(160, libmysqlclient, 0o755))
+    actual_file_permissions = os.stat(libmysqlclient).st_mode & 0o777
+    requested_file_permissions = 0o755
+    if actual_file_permissions != requested_file_permissions:
+        os.chmod(libmysqlclient, requested_file_permissions)
+        logging.info(message_info(151, libmysqlclient, actual_file_permissions, requested_file_permissions))
 
-    try:
+    # Make a soft link
+
+    if not os.path.exists(libmysqlclient_link):
         os.symlink(libmysqlclient, libmysqlclient_link)
         logging.info(message_info(158, libmysqlclient_link, libmysqlclient))
-    except FileExistsError as err:
-        pass
 
 
 def database_initialization(config):
