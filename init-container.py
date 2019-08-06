@@ -500,7 +500,8 @@ def get_configuration(args):
     # Special case: Change integer strings to integers.
 
     integers = [
-        'sleep_time_in_seconds'
+        'init_container_sleep',
+        'sleep_time_in_seconds',
         ]
     for integer in integers:
         integer_string = result.get(integer)
