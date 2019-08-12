@@ -251,6 +251,7 @@ message_dictionary = {
     "159": "{0} - Downloaded from {1}",
     "160": "{0} - Copied and modified from {1}",
     "161": "{0} - Backup of current {1}",
+    "162": "{0} - Was not created because there is no {1}",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
@@ -858,9 +859,18 @@ def copy_files(config):
     # Copy files.
 
     for file in files:
+        source_file = file.get("source_file")
         target_file = file.get("target_file")
+
+        # Check if source file exists.
+
+        if not os.path.exists(source_file):
+            logging.info(message_info(162, target_file, source_file))
+            continue
+
+        # If source file exists and the target doesn't exist, copy.
+
         if not os.path.exists(target_file):
-            source_file = file.get("source_file")
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copyfile(source_file, target_file)
             logging.info(message_info(154, target_file, source_file))
