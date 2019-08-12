@@ -9,6 +9,7 @@ from urllib.parse import urlparse, urlunparse
 import urllib.request
 import argparse
 import configparser
+import filecmp
 import json
 import linecache
 import logging
@@ -30,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-08-06'
+__updated__ = '2019-08-12'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -248,6 +249,8 @@ message_dictionary = {
     "157": "{0} - Created file",
     "158": "{0} - Created symlink to {1}",
     "159": "{0} - Downloaded from {1}",
+    "160": "{0} - Copied and modified from {1}",
+    "161": "{0} - Backup of current {1}",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
@@ -260,6 +263,7 @@ message_dictionary = {
     "300": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}W",
     "499": "{0}",
     "500": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
+    "510": "{0} - File is missing.",
     "695": "Unknown database scheme '{0}' in database url '{1}'",
     "696": "Bad SENZING_SUBCOMMAND: {0}.",
     "697": "No processing done.",
@@ -302,7 +306,7 @@ def message_info(index, *args):
     return message_generic(MESSAGE_INFO, index, *args)
 
 
-def message_warn(index, *args):
+def message_warning(index, *args):
     return message_generic(MESSAGE_WARN, index, *args)
 
 
@@ -904,11 +908,40 @@ def delete_files(config):
             os.remove(file)
             logging.info(message_info(155, file))
 
-def database_initialization_db2(config):
 
-    ::: MJD Start here.
+def database_initialization_db2(config, parsed_database_url):
 
-    pass
+    input_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg.senzing-template"
+    output_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg"
+    backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
+
+    # Detect error and exit, if needed.
+
+    if not os.path.exists(input_filename):
+        logging.warning(message_warning(510, input_filename))
+        return
+
+    # Backup existing file.
+
+    if os.path.exists(output_filename):
+        os.rename(output_filename, backup_filename)
+
+    # Create new file from input_filename template.
+
+    with open(input_filename, 'r') as in_file:
+        with open(output_filename, 'w') as out_file:
+            for line in in_file:
+                out_file.write(line.format(**parsed_database_url))
+    logging.info(message_info(160, output_filename, input_filename))
+
+    # Remove backup file if it is the same as the new file.
+
+    if os.path.exists(backup_filename):
+        if filecmp.cmp(output_filename, backup_filename):
+            os.remove(backup_filename)
+        else:
+            logging.info(message_info(161, backup_filename, output_filename))
+
 
 def database_initialization_mysql(config):
 
@@ -953,7 +986,7 @@ def database_initialization(config):
     ''' Given a canonical database URL, transform to the specific URL. '''
 
     result = ""
-    database_url = config.get('g2_database_url_raw')
+    database_url = config.get('g2_database_url')
     parsed_database_url = parse_database_url(database_url)
     scheme = parsed_database_url.get('scheme')
 
@@ -964,7 +997,7 @@ def database_initialization(config):
     elif scheme in ['postgresql']:
         pass
     elif scheme in ['db2']:
-        result = database_initialization_db2(config)
+        result = database_initialization_db2(config, parsed_database_url)
     elif scheme in ['sqlite3']:
         pass
     else:
