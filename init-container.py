@@ -795,7 +795,7 @@ def change_module_ini(config):
         messsage = "Changed SQL.CONNECTION to {0}".format(new_database_url)
         logging.info(message_info(156, filename, messsage))
 
-    # Remove G2CONFIGFILE option
+    # Remove SQL.G2CONFIGFILE option
 
     config_parser.remove_option('SQL', 'G2CONFIGFILE')
 
