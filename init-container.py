@@ -787,14 +787,14 @@ def change_module_ini(config):
     old_database_url = config_parser.get('SQL', 'CONNECTION')
     if new_database_url != old_database_url:
         config_parser['SQL']['CONNECTION'] = new_database_url
-        messsage = "Changed SQL.CONNECTION to {0}".format(new_database_url)
-        logging.info(message_info(156, filename, messsage))
+        message = "Changed SQL.CONNECTION to {0}".format(new_database_url)
+        logging.info(message_info(156, filename, message))
 
     # Remove SQL.G2CONFIGFILE option.
 
     config_parser.remove_option('SQL', 'G2CONFIGFILE')
     message = "Removed SQL.G2CONFIGFILE"
-    logging.info(message_info(156, filename, messsage))
+    logging.info(message_info(156, filename, message))
 
     # Write out contents.
 
@@ -824,8 +824,8 @@ def change_project_ini(config):
     if new_database_url != old_database_url:
         changed = True
         config_parser['g2']['G2Connection'] = new_database_url
-        messsage = "Changed g2.G2Connection to {0}".format(new_database_url)
-        logging.info(message_info(156, filename, messsage))
+        message = "Changed g2.G2Connection to {0}".format(new_database_url)
+        logging.info(message_info(156, filename, message))
 
     # Write out contents.
 
