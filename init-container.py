@@ -4,14 +4,16 @@
 # python-template.py Example python skeleton.
 # -----------------------------------------------------------------------------
 
-from glob import glob
+from pathlib import Path
 from urllib.parse import urlparse, urlunparse
+import urllib.request
 import argparse
+import configparser
+import filecmp
 import json
 import linecache
 import logging
 import os
-from pathlib import Path
 import shutil
 import signal
 import stat
@@ -29,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-08-05'
+__updated__ = '2019-08-12'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -65,10 +67,15 @@ configuration_locator = {
         "env": "SENZING_ETC_DIR",
         "cli": "etc-dir"
     },
-    "g2_database_url_generic": {
+    "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
         "env": "SENZING_DATABASE_URL",
         "cli": "database-url"
+    },
+    "g2_database_url_raw": {
+        "default": None,
+        "env": "SENZING_DATABASE_URL_RAW",
+        "cli": "database-url-raw"
     },
     "g2_dir": {
         "default": "/opt/senzing/g2",
@@ -144,7 +151,7 @@ def get_parser():
                     "help": "Location of Senzing's configuration template. Default: /opt/senzing/g2/data"
                 },
                 "--database-url": {
-                    "dest": "g2_database_url_generic",
+                    "dest": "g2_database_url",
                     "metavar": "SENZING_DATABASE_URL",
                     "help": "Information for connecting to database."
                 },
@@ -238,6 +245,13 @@ message_dictionary = {
     "153": "{0} - Changed group from {1} to {2}",
     "154": "{0} - Created file by copying {1}",
     "155": "{0} - Deleted",
+    "156": "{0} - Modified. {1}",
+    "157": "{0} - Created file",
+    "158": "{0} - Created symlink to {1}",
+    "159": "{0} - Downloaded from {1}",
+    "160": "{0} - Copied and modified from {1}",
+    "161": "{0} - Backup of current {1}",
+    "162": "{0} - Was not created because there is no {1}",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
@@ -250,6 +264,7 @@ message_dictionary = {
     "300": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}W",
     "499": "{0}",
     "500": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
+    "510": "{0} - File is missing.",
     "695": "Unknown database scheme '{0}' in database url '{1}'",
     "696": "Bad SENZING_SUBCOMMAND: {0}.",
     "697": "No processing done.",
@@ -292,7 +307,7 @@ def message_info(index, *args):
     return message_generic(MESSAGE_INFO, index, *args)
 
 
-def message_warn(index, *args):
+def message_warning(index, *args):
     return message_generic(MESSAGE_WARN, index, *args)
 
 
@@ -419,12 +434,13 @@ def parse_database_url(original_senzing_database_url):
     # Return result.
 
     return result
+
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
 
 
-def get_g2_database_url_specific(generic_database_url):
+def get_g2_database_url_raw(generic_database_url):
     ''' Given a canonical database URL, transform to the specific URL. '''
 
     result = ""
@@ -499,7 +515,8 @@ def get_configuration(args):
     # Special case: Change integer strings to integers.
 
     integers = [
-        'sleep_time_in_seconds'
+        'init_container_sleep',
+        'sleep_time_in_seconds',
         ]
     for integer in integers:
         integer_string = result.get(integer)
@@ -507,7 +524,8 @@ def get_configuration(args):
 
     # Special case:  Tailored database URL
 
-    result['g2_database_url_specific'] = get_g2_database_url_specific(result.get("g2_database_url_generic"))
+    if not result['g2_database_url_raw']:
+        result['g2_database_url_raw'] = get_g2_database_url_raw(result.get("g2_database_url"))
 
     return result
 
@@ -752,6 +770,70 @@ def change_file_permissions(config):
                 os.chown(filename, requested_file_uid, requested_file_gid)
 
 
+def change_module_ini(config):
+
+    etc_dir = config.get("etc_dir")
+    new_database_url = config.get('g2_database_url_raw')
+
+    # Read G2Module.ini.
+
+    filename = "{0}/G2Module.ini".format(etc_dir)
+    config_parser = configparser.ConfigParser()
+    config_parser.optionxform = str  # Maintain case of keys.
+    config_parser.read(filename)
+
+    # Used to remember if contents change.
+
+    changed = False
+
+    # Check SQL.CONNECTION.
+
+    old_database_url = config_parser.get('SQL', 'CONNECTION')
+    if new_database_url != old_database_url:
+        changed = True
+        config_parser['SQL']['CONNECTION'] = new_database_url
+        messsage = "Changed SQL.CONNECTION to {0}".format(new_database_url)
+        logging.info(message_info(156, filename, messsage))
+
+    # Write out contents.
+
+    if changed:
+        with open(filename, 'w') as output_file:
+            config_parser.write(output_file)
+
+
+def change_project_ini(config):
+
+    etc_dir = config.get("etc_dir")
+    new_database_url = config.get('g2_database_url_raw')
+
+    # Read G2Project.ini.
+
+    filename = "{0}/G2Project.ini".format(etc_dir)
+    config_parser = configparser.ConfigParser()
+    config_parser.optionxform = str  # Maintain case of keys
+    config_parser.read(filename)
+
+    # Used to remember if contents change.
+
+    changed = False
+
+    # Check SQL.CONNECTION.
+
+    old_database_url = config_parser.get('g2', 'G2Connection')
+    if new_database_url != old_database_url:
+        changed = True
+        config_parser['g2']['G2Connection'] = new_database_url
+        messsage = "Changed g2.G2Connection to {0}".format(new_database_url)
+        logging.info(message_info(156, filename, messsage))
+
+    # Write out contents.
+
+    if changed:
+        with open(filename, 'w') as output_file:
+            config_parser.write(output_file)
+
+
 def copy_files(config):
 
     # Get paths.
@@ -777,9 +859,18 @@ def copy_files(config):
     # Copy files.
 
     for file in files:
+        source_file = file.get("source_file")
         target_file = file.get("target_file")
+
+        # Check if source file exists.
+
+        if not os.path.exists(source_file):
+            logging.info(message_info(162, target_file, source_file))
+            continue
+
+        # If source file exists and the target doesn't exist, copy.
+
         if not os.path.exists(target_file):
-            source_file = file.get("source_file")
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copyfile(source_file, target_file)
             logging.info(message_info(154, target_file, source_file))
@@ -827,6 +918,103 @@ def delete_files(config):
             os.remove(file)
             logging.info(message_info(155, file))
 
+
+def database_initialization_db2(config, parsed_database_url):
+
+    input_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg.senzing-template"
+    output_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg"
+    backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
+
+    # Detect error and exit, if needed.
+
+    if not os.path.exists(input_filename):
+        logging.warning(message_warning(510, input_filename))
+        return
+
+    # Backup existing file.
+
+    if os.path.exists(output_filename):
+        os.rename(output_filename, backup_filename)
+
+    # Create new file from input_filename template.
+
+    with open(input_filename, 'r') as in_file:
+        with open(output_filename, 'w') as out_file:
+            for line in in_file:
+                out_file.write(line.format(**parsed_database_url))
+    logging.info(message_info(160, output_filename, input_filename))
+
+    # Remove backup file if it is the same as the new file.
+
+    if os.path.exists(backup_filename):
+        if filecmp.cmp(output_filename, backup_filename):
+            os.remove(backup_filename)
+        else:
+            logging.info(message_info(161, backup_filename, output_filename))
+
+
+def database_initialization_mysql(config):
+
+    url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.16-2debian9_amd64.deb"
+    filename = "/opt/senzing/g2/download/libmysqlclient.deb"
+    libmysqlclient = "/opt/senzing/g2/lib/libmysqlclient.so.21.0.16"
+    libmysqlclient_link = "/opt/senzing/g2/lib/libmysqlclient.so.21"
+
+    # Download the file.
+
+    if not os.path.exists(filename):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with urllib.request.urlopen(url) as response:
+            with open(filename, 'wb') as out_file:
+                shutil.copyfileobj(response, out_file)
+                logging.info(message_info(159, filename, url))
+
+    # Create file using "dpkg".
+
+    if not os.path.exists(libmysqlclient):
+        command = "dpkg --fsys-tarfile /opt/senzing/g2/download/libmysqlclient.deb | tar xOf - ./usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.0.16  > {0}".format(libmysqlclient)
+        os.environ["DEBIAN_FRONTEND"] = "noninteractive"
+        os.system(command)
+        logging.info(message_info(157, libmysqlclient))
+
+    # Change file permissions.
+
+    actual_file_permissions = os.stat(libmysqlclient).st_mode & 0o777
+    requested_file_permissions = 0o755
+    if actual_file_permissions != requested_file_permissions:
+        os.chmod(libmysqlclient, requested_file_permissions)
+        logging.info(message_info(151, libmysqlclient, actual_file_permissions, requested_file_permissions))
+
+    # Make a soft link
+
+    if not os.path.exists(libmysqlclient_link):
+        os.symlink(libmysqlclient, libmysqlclient_link)
+        logging.info(message_info(158, libmysqlclient_link, libmysqlclient))
+
+
+def database_initialization(config):
+    ''' Given a canonical database URL, transform to the specific URL. '''
+
+    result = ""
+    database_url = config.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
+    scheme = parsed_database_url.get('scheme')
+
+    # Format database URL for a particular database.
+
+    if scheme in ['mysql']:
+        result = database_initialization_mysql(config)
+    elif scheme in ['postgresql']:
+        pass
+    elif scheme in ['db2']:
+        result = database_initialization_db2(config, parsed_database_url)
+    elif scheme in ['sqlite3']:
+        pass
+    else:
+        logging.error(message_error(695, scheme, database_url))
+
+    return result
+
 # -----------------------------------------------------------------------------
 # Senzing services.
 # -----------------------------------------------------------------------------
@@ -841,7 +1029,7 @@ def get_g2_configuration_dictionary(config):
             "SUPPORTPATH": config.get("support_path"),
         },
         "SQL": {
-            "CONNECTION": config.get("g2_database_url_specific"),
+            "CONNECTION": config.get("g2_database_url_raw"),
         }
     }
     return result
@@ -932,6 +1120,15 @@ def do_initialize(args):
     copy_template_files(config)
     copy_files(config)
     change_file_permissions(config)
+
+    # Change ini files
+
+    change_module_ini(config)
+    change_project_ini(config)
+
+    # Database specific operations.
+
+    database_initialization(config)
 
     # Get Senzing resources.
 
