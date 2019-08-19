@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-08-12'
+__updated__ = '2019-08-19'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -782,24 +782,24 @@ def change_module_ini(config):
     config_parser.optionxform = str  # Maintain case of keys.
     config_parser.read(filename)
 
-    # Used to remember if contents change.
-
-    changed = False
-
     # Check SQL.CONNECTION.
 
     old_database_url = config_parser.get('SQL', 'CONNECTION')
     if new_database_url != old_database_url:
-        changed = True
         config_parser['SQL']['CONNECTION'] = new_database_url
-        messsage = "Changed SQL.CONNECTION to {0}".format(new_database_url)
-        logging.info(message_info(156, filename, messsage))
+        message = "Changed SQL.CONNECTION to {0}".format(new_database_url)
+        logging.info(message_info(156, filename, message))
+
+    # Remove SQL.G2CONFIGFILE option.
+
+    config_parser.remove_option('SQL', 'G2CONFIGFILE')
+    message = "Removed SQL.G2CONFIGFILE"
+    logging.info(message_info(156, filename, message))
 
     # Write out contents.
 
-    if changed:
-        with open(filename, 'w') as output_file:
-            config_parser.write(output_file)
+    with open(filename, 'w') as output_file:
+        config_parser.write(output_file)
 
 
 def change_project_ini(config):
@@ -824,8 +824,8 @@ def change_project_ini(config):
     if new_database_url != old_database_url:
         changed = True
         config_parser['g2']['G2Connection'] = new_database_url
-        messsage = "Changed g2.G2Connection to {0}".format(new_database_url)
-        logging.info(message_info(156, filename, messsage))
+        message = "Changed g2.G2Connection to {0}".format(new_database_url)
+        logging.info(message_info(156, filename, message))
 
     # Write out contents.
 
