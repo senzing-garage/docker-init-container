@@ -63,7 +63,9 @@ Configuration values specified by environment variable or command line parameter
 - **[SENZING_DEBUG](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_debug)**
 - **[SENZING_ETC_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_etc_dir)**
 - **[SENZING_G2_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_g2_dir)**
+- **[SENZING_NETWORK](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_network)**
 - **[SENZING_VAR_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_var_dir)**
+- **[DOCKER_RUNAS_USER](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#docker_runas_user)**
 
 ### Volumes
 
@@ -119,6 +121,13 @@ Create a folder for each output directory.
     export DATABASE_DATABASE=G2
     ```
 
+1. Optional:  Run as root.
+   Example:
+
+    ```console
+    export DOCKER_RUNAS_USER="--user 0"
+    ```
+
 1. Run docker container.
    Example:
 
@@ -129,12 +138,15 @@ Create a folder for each output directory.
       --env SENZING_DATABASE_URL="${SENZING_DATABASE_URL}" \
       --net ${SENZING_NETWORK} \
       --rm \
+      ${DOCKER_RUNAS_USER} \
       --volume ${SENZING_DATA_VERSION_DIR}:/opt/senzing/data \
       --volume ${SENZING_ETC_DIR}:/etc/opt/senzing \
       --volume ${SENZING_G2_DIR}:/opt/senzing/g2 \
       --volume ${SENZING_VAR_DIR}:/var/opt/senzing \
       senzing/init-container
     ```
+
+### Run docker container as root
 
 ## Develop
 
