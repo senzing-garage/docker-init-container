@@ -157,8 +157,6 @@ Create a folder for each output directory.
       senzing/init-container
     ```
 
-### Run docker container as root
-
 ## Develop
 
 ### Prerequisite software
