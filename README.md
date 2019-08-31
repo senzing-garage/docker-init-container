@@ -3,7 +3,6 @@
 ## Overview
 
 The `senzing/init-container` performs Senzing initializations.
-The initializations are seen in the [init-container.py](init-container.py) script.
 
 **Synopsis:**
 
@@ -11,6 +10,7 @@ The initializations are seen in the [init-container.py](init-container.py) scrip
 1. Change file permissions and ownership of specific files.
 1. Modify contents of specific `ini` files.
 1. If needed, populate Senzing database `SYS_CFG` table with default configuration.
+1. Initializations are performed by [init-container.py](init-container.py) script.
 
 ### Contents
 
