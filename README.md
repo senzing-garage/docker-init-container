@@ -7,10 +7,10 @@ The initializations are seen in the [init-container.py](init-container.py) scrip
 
 **Synopsis:**
 
-1. If needed, copy `*.template` files into actual files.
-1. Change file permissions and ownership.
-1. Modify contents of `ini` files
-1. If needed, populate Senzing's `SYS_CFG` database with default configuration.
+1. Where needed, copy `*.template` files into actual files.
+1. Change file permissions and ownership of specific files.
+1. Modify contents of specific `ini` files.
+1. If needed, populate Senzing database `SYS_CFG` table with default configuration.
 
 ### Contents
 
