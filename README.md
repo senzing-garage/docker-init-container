@@ -63,6 +63,8 @@ Configuration values specified by environment variable or command line parameter
 - **[SENZING_DEBUG](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_debug)**
 - **[SENZING_ETC_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_etc_dir)**
 - **[SENZING_G2_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_g2_dir)**
+- **[SENZING_NETWORK](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_network)**
+- **[SENZING_RUNAS_USER](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_runas_user)**
 - **[SENZING_VAR_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_var_dir)**
 
 ### Volumes
@@ -97,17 +99,20 @@ Create a folder for each output directory.
 
 ### Run docker container
 
-1. :pencil2: Determine docker network.
+1. :pencil2: If using a docker network, specify docker network.
    Example:
 
     ```console
     sudo docker network ls
-
-    # Choose value from NAME column of docker network ls
-    export SENZING_NETWORK=nameofthe_network
     ```
 
-1. :pencil2: Set environment variables.
+    Choose value from NAME column of `docker network ls`.
+
+    ```console
+    export SENZING_NETWORK="--net nameofthe_network"
+    ```
+
+1. :pencil2: If using an external database, specify database.
    Example:
 
     ```console
@@ -119,15 +124,27 @@ Create a folder for each output directory.
     export DATABASE_DATABASE=G2
     ```
 
+    Construct parameter for `docker run`.
+
+    ```console
+    export SENZING_DATABASE_URL="--env SENZING_DATABASE_URL=${DATABASE_PROTOCOL}://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}"
+    ```
+
+1. Optional:  Run as root.
+   Example:
+
+    ```console
+    export SENZING_RUNAS_USER="--user 0"
+    ```
+
 1. Run docker container.
    Example:
 
     ```console
-    export SENZING_DATABASE_URL="${DATABASE_PROTOCOL}://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}"
-
     sudo docker run \
-      --env SENZING_DATABASE_URL="${SENZING_DATABASE_URL}" \
-      --net ${SENZING_NETWORK} \
+      ${SENZING_RUNAS_USER} \
+      ${SENZING_DATABASE_URL} \
+      ${SENZING_NETWORK} \
       --rm \
       --volume ${SENZING_DATA_VERSION_DIR}:/opt/senzing/data \
       --volume ${SENZING_ETC_DIR}:/etc/opt/senzing \
@@ -135,6 +152,8 @@ Create a folder for each output directory.
       --volume ${SENZING_VAR_DIR}:/var/opt/senzing \
       senzing/init-container
     ```
+
+### Run docker container as root
 
 ## Develop
 
