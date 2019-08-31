@@ -109,7 +109,8 @@ Create a folder for each output directory.
     Choose value from NAME column of `docker network ls`.
 
     ```console
-    export SENZING_NETWORK="--net nameofthe_network"
+    export SENZING_NETWORK=*nameofthe_network*
+    export SENZING_NETWORK_PARAMETER="--net ${SENZING_NETWORK}"
     ```
 
 1. :pencil2: If using an external database, specify database.
@@ -127,14 +128,17 @@ Create a folder for each output directory.
     Construct parameter for `docker run`.
 
     ```console
-    export SENZING_DATABASE_URL="--env SENZING_DATABASE_URL=${DATABASE_PROTOCOL}://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}"
+    export SENZING_DATABASE_URL="${DATABASE_PROTOCOL}://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}"
+
+    export SENZING_DATABASE_URL_PARAMETER="--env SENZING_DATABASE_URL=${SENZING_DATABASE_URL}
     ```
 
 1. Optional:  Run as root.
    Example:
 
     ```console
-    export SENZING_RUNAS_USER="--user 0"
+    export SENZING_RUNAS_USER="0"
+    export SENZING_RUNAS_USER_PARAMETER="--user ${SENZING_RUNAS_USER}"
     ```
 
 1. Run docker container.
@@ -142,9 +146,9 @@ Create a folder for each output directory.
 
     ```console
     sudo docker run \
-      ${SENZING_RUNAS_USER} \
-      ${SENZING_DATABASE_URL} \
-      ${SENZING_NETWORK} \
+      ${SENZING_RUNAS_USER_PARAMETER} \
+      ${SENZING_DATABASE_URL_PARAMETER} \
+      ${SENZING_NETWORK_PARAMETER} \
       --rm \
       --volume ${SENZING_DATA_VERSION_DIR}:/opt/senzing/data \
       --volume ${SENZING_ETC_DIR}:/etc/opt/senzing \
