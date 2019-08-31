@@ -2,12 +2,15 @@
 
 ## Overview
 
-The `senzing/init-container` performs all of the Senzing initializations which require `root` permission.
+The `senzing/init-container` performs Senzing initializations.
 The initializations are seen in the [init-container.py](init-container.py) script.
 
-`senzing/init-container` has the following applications:
+**Synopsis:**
 
-1. **Kubernetes** - as an `initContainer`.
+1. If needed, copy `*.template` files into actual files.
+1. Change file permissions and ownership.
+1. Modify contents of `ini` files
+1. If needed, populate Senzing's `SYS_CFG` database with default configuration.
 
 ### Contents
 
