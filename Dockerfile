@@ -1,11 +1,11 @@
 ARG BASE_IMAGE=senzing/senzing-base:1.2.1
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2019-08-05
+ENV REFRESHED_AT=2019-09-31
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.2.1"
+      Version="1.3.0"
 
 HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
@@ -17,6 +17,10 @@ USER root
 
 COPY ./rootfs /
 COPY init-container.py /app
+
+# Make non-root container.
+
+USER 1001
 
 # Runtime execution.
 
