@@ -104,6 +104,10 @@ Create a folder for each output directory.
 
 **Optional:**  Use if docker container is part of a docker network.
 
+:gear:
+
+:thinking:
+
 1. List docker networks.
    Example:
 
