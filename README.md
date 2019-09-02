@@ -102,11 +102,7 @@ Create a folder for each output directory.
 
 ### Docker network
 
-**Optional:**  Use if docker container is part of a docker network.
-
-:gear:
-
-:thinking:
+:gear: **Optional:**  Use if docker container is part of a docker network.
 
 1. List docker networks.
    Example:
@@ -132,7 +128,7 @@ Create a folder for each output directory.
 
 ### External database
 
-**Optional:**  Use if storing data in an external database.
+:gear: **Optional:**  Use if storing data in an external database.
 
 1. :pencil2: Specify database.
    Example:
@@ -162,7 +158,7 @@ Create a folder for each output directory.
 
 ### Docker user
 
-**Optional:**  The docker container runs as "USER 1001".
+:gear: **Optional:**  The docker container runs as "USER 1001".
 Use if a different userid is required.
 
 1. :pencil2: Identify user.
