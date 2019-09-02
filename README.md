@@ -97,23 +97,37 @@ Create a folder for each output directory.
     export SENZING_VAR_DIR=${SENZING_VOLUME}/var
     ```
 
-### Run docker container
+### Docker network
 
-1. :pencil2: If using a docker network, specify docker network.
+Optional:  Use if docker container is part of a docker network.
+
+1. List docker networks.
    Example:
 
     ```console
     sudo docker network ls
     ```
 
-    Choose value from NAME column of `docker network ls`.
+1. :pencil2: Specify docker network.
+   Choose value from NAME column of `docker network ls`.
+   Example:
 
     ```console
     export SENZING_NETWORK=*nameofthe_network*
+    ```
+
+1. Construct parameter for `docker run`.
+   Example:
+
+    ```console
     export SENZING_NETWORK_PARAMETER="--net ${SENZING_NETWORK}"
     ```
 
-1. :pencil2: If using an external database, specify database.
+### External database
+
+Optional:  Use if storing data in an external database.
+
+1. :pencil2: Specify database.
    Example:
 
     ```console
@@ -125,7 +139,8 @@ Create a folder for each output directory.
     export DATABASE_DATABASE=G2
     ```
 
-    Construct parameter for `docker run`.
+1. Construct parameter for `docker run`.
+   Example:
 
     ```console
     export SENZING_DATABASE_URL="${DATABASE_PROTOCOL}://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}"
@@ -133,13 +148,27 @@ Create a folder for each output directory.
     export SENZING_DATABASE_URL_PARAMETER="--env SENZING_DATABASE_URL=${SENZING_DATABASE_URL}
     ```
 
-1. Optional:  Run as root.
+### Docker user
+
+Optional:  The docker container runs as "USER 1001".
+Use if a different userid is required.
+
+1. :pencil2: Identify user.
+   User "0" is root.
    Example:
 
     ```console
     export SENZING_RUNAS_USER="0"
+    ```
+
+1. Construct parameter for `docker run`.
+   Example:
+
+    ```console
     export SENZING_RUNAS_USER_PARAMETER="--user ${SENZING_RUNAS_USER}"
     ```
+
+### Run docker container
 
 1. Run docker container.
    Example:
