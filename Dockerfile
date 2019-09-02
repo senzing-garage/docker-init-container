@@ -1,7 +1,7 @@
 ARG BASE_IMAGE=senzing/senzing-base:1.2.1
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2019-09-31
+ENV REFRESHED_AT=2019-08-31
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
