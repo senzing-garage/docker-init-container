@@ -142,12 +142,17 @@ Optional:  Use if storing data in an external database.
     export DATABASE_DATABASE=G2
     ```
 
-1. Construct parameter for `docker run`.
+1. Construct Database URL.
    Example:
 
     ```console
     export SENZING_DATABASE_URL="${DATABASE_PROTOCOL}://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}"
+    ```
 
+1. Construct parameter for `docker run`.
+   Example:
+
+    ```console
     export SENZING_DATABASE_URL_PARAMETER="--env SENZING_DATABASE_URL=${SENZING_DATABASE_URL}
     ```
 
