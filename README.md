@@ -12,6 +12,11 @@ The `senzing/init-container` performs Senzing initializations.
 1. If needed, populate Senzing database `SYS_CFG` table with default configuration.
 1. Initializations are performed by [init-container.py](init-container.py) script.
 
+### Related artifacts
+
+1. [DockerHub](https://hub.docker.com/r/senzing/init-container)
+1. [Helm Chart](https://github.com/Senzing/charts/tree/master/charts/senzing-init-container)
+
 ### Contents
 
 1. [Expectations](#expectations)
