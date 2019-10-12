@@ -850,7 +850,7 @@ def copy_files(config):
 
     # Files to copy.
 
-    template_files = [
+    template_file_names = [
         "cfgVariant.json.template",
         "customOn.txt.template",
         "defaultGNRCP.config.template",
@@ -858,7 +858,6 @@ def copy_files(config):
         "G2Project.ini.template",
         "customGn.txt.template",
         "customSn.txt.template",
-        "G2C.db.template",
         "G2Module.ini.template",
         "stb.config.template",
     ]
@@ -877,13 +876,13 @@ def copy_files(config):
 
     # Add files from {resource_dir}/templates
 
-    for template_file in template_files:
+    for template_file_name in template_file_names:
 
         # Handle files from 1.11.
 
         actual_file_name = Path(template_file_name).stem
         from_etc = {
-            "source_file": "{0}/{1}".format(etc_dir, template_file),
+            "source_file": "{0}/{1}".format(etc_dir, template_file_name),
             "target_file": "{0}/{1}".format(etc_dir, actual_file_name),
         }
         files.append(from_etc)
@@ -891,7 +890,7 @@ def copy_files(config):
         # Handle files from 1.12+.
 
         from_templates = {
-            "source_file": "{0}/templates/{1}".format(resource_path, template_file),
+            "source_file": "{0}/templates/{1}".format(resource_path, template_file_name),
             "target_file": "{0}/{1}".format(etc_dir, actual_file_name),
         }
         files.append(from_templates)
