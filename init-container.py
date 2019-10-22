@@ -1184,7 +1184,7 @@ def do_sleep(args):
 
     sleep_time_in_seconds = config.get('sleep_time_in_seconds')
 
-    # Sleep
+    # Sleep.
 
     if sleep_time_in_seconds > 0:
         logging.info(message_info(296, sleep_time_in_seconds))
