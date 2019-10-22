@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-09-23'
+__updated__ = '2019-10-12'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -66,6 +66,11 @@ configuration_locator = {
         "default": "/etc/opt/senzing",
         "env": "SENZING_ETC_DIR",
         "cli": "etc-dir"
+    },
+    "etc_template_dir": {
+        "default": "/etc/opt/senzing",
+        "env": "SENZING_ETC_TEMPLATE_DIR",
+        "cli": "etc-template-dir"
     },
     "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
@@ -845,15 +850,50 @@ def copy_files(config):
 
     # Files to copy.
 
+    template_file_names = [
+        "cfgVariant.json.template",
+        "customOn.txt.template",
+        "defaultGNRCP.config.template",
+        "g2config.json.template",
+        "G2Project.ini.template",
+        "customGn.txt.template",
+        "customSn.txt.template",
+        "G2Module.ini.template",
+        "stb.config.template",
+    ]
+
+    # Append files from various places.
+
     files = [
         {
             "source_file": "{0}/sqlite/G2C.db".format(var_dir),
             "target_file": "{0}/sqlite/G2C.db.template".format(var_dir),
         }, {
-            "source_file": "{0}/g2config.json.template".format(etc_dir),
-            "target_file": "{0}/templates/g2config.json.template".format(resource_path),
+            "source_file": "{0}/templates/G2C.db.template".format(resource_path),
+            "target_file": "{0}/sqlite/G2C.db".format(var_dir),
         }
     ]
+
+    # Add files from {resource_dir}/templates
+
+    for template_file_name in template_file_names:
+
+        # Handle files from 1.11.
+
+        actual_file_name = Path(template_file_name).stem
+        from_etc = {
+            "source_file": "{0}/{1}".format(etc_dir, template_file_name),
+            "target_file": "{0}/{1}".format(etc_dir, actual_file_name),
+        }
+        files.append(from_etc)
+
+        # Handle files from 1.12+.
+
+        from_templates = {
+            "source_file": "{0}/templates/{1}".format(resource_path, template_file_name),
+            "target_file": "{0}/{1}".format(etc_dir, actual_file_name),
+        }
+        files.append(from_templates)
 
     # Copy files.
 
@@ -873,29 +913,6 @@ def copy_files(config):
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copyfile(source_file, target_file)
             logging.info(message_info(154, target_file, source_file))
-
-
-def copy_template_files(config):
-
-    # Review files in "/etc/opt/senzing" directory.
-
-    etc_dir = config.get("etc_dir")
-    for template_file_name in os.listdir(etc_dir):
-
-        # Process only ".template" files.
-
-        if template_file_name.endswith(".template"):
-            template_file_path = os.path.join(etc_dir, template_file_name)
-            actual_file_name = Path(template_file_name).stem
-            actual_file_path = os.path.join(etc_dir, actual_file_name)
-
-            # If actual file doesn't exist, make it from template file.
-
-            if not os.path.exists(actual_file_path):
-                shutil.copyfile(template_file_path, actual_file_path)
-                logging.info(message_info(154, actual_file_path, template_file_path))
-            else:
-                logging.debug(message_debug(901, actual_file_path))
 
 
 def delete_files(config):
@@ -1116,7 +1133,6 @@ def do_initialize(args):
 
     # Manipulate files.
 
-    copy_template_files(config)
     copy_files(config)
     change_file_permissions(config)
 
@@ -1168,7 +1184,7 @@ def do_sleep(args):
 
     sleep_time_in_seconds = config.get('sleep_time_in_seconds')
 
-    # Sleep
+    # Sleep.
 
     if sleep_time_in_seconds > 0:
         logging.info(message_info(296, sleep_time_in_seconds))
