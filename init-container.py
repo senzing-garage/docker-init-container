@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-10-12'
+__updated__ = '2019-11-02'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -111,10 +111,10 @@ configuration_locator = {
         "default": None,
         "env": "SENZING_SUBCOMMAND",
     },
-    "support_path": {
+    "data_dir": {
         "default": "/opt/senzing/data",
-        "env": "SENZING_SUPPORT_PATH",
-        "cli": "support-path"
+        "env": "SENZING_DATA_DIR",
+        "cli": "data-dir"
     },
     "uid": {
         "default": 1001,
@@ -180,9 +180,9 @@ def get_parser():
                     "metavar": "SENZING_GID",
                     "help": "GID for file ownership. Default: 1001"
                 },
-                "--support-path": {
-                    "dest": "support_path",
-                    "metavar": "SENZING_SUPPORT_PATH",
+                "--data-dir": {
+                    "dest": "data_dir",
+                    "metavar": "SENZING_DATA_DIR",
                     "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
                 },
                 "--uid": {
@@ -771,7 +771,7 @@ def change_file_permissions(config):
                 ownership_changed = True
                 logging.info(message_info(153, filename, actual_file_gid, requested_file_gid))
             if ownership_changed:
-                os.chown(filename, requested_file_uid, requested_file_gid)
+                os.chown(filename, int(requested_file_uid), int(requested_file_gid))
 
 
 def change_module_ini(config):
