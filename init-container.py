@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-02'
+__updated__ = '2019-11-05'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -453,7 +453,7 @@ def get_g2_database_url_raw(generic_database_url):
 
     # Format database URL for a particular database.
 
-    if scheme in ['mysql']:
+    if scheme in ['mysql', 'mssql']:
         result = "{scheme}://{username}:{password}@{hostname}:{port}/?schema={schema}".format(**parsed_database_url)
     elif scheme in ['postgresql']:
         result = "{scheme}://{username}:{password}@{hostname}:{port}:{schema}/".format(**parsed_database_url)
