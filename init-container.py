@@ -29,7 +29,7 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.3.3"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
 __updated__ = '2019-11-06'
 
@@ -177,6 +177,51 @@ def get_parser():
                 },
             },
         },
+        'initialize-database': {
+            "help": 'Initialize only the database. This is a subset of the full initialize sub-commmand',
+            "arguments": {
+                "--database-url": {
+                    "dest": "g2_database_url",
+                    "metavar": "SENZING_DATABASE_URL",
+                    "help": "Information for connecting to database."
+                },
+                "--debug": {
+                    "dest": "debug",
+                    "action": "store_true",
+                    "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+                },
+                "--etc-dir": {
+                    "dest": "etc_dir",
+                    "metavar": "SENZING_ETC_DIR",
+                    "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
+                },
+                "--g2-dir": {
+                    "dest": "g2_dir",
+                    "metavar": "SENZING_G2_DIR",
+                    "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
+                },
+                "--gid": {
+                    "dest": "gid",
+                    "metavar": "SENZING_GID",
+                    "help": "GID for file ownership. Default: 1001"
+                },
+                "--data-dir": {
+                    "dest": "data_dir",
+                    "metavar": "SENZING_DATA_DIR",
+                    "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
+                },
+                "--uid": {
+                    "dest": "uid",
+                    "metavar": "SENZING_UID",
+                    "help": "UID for file ownership. Default: 1001"
+                },
+                "--var-dir": {
+                    "dest": "var_dir",
+                    "metavar": "SENZING_VAR_DIR",
+                    "help": "Location of senzing var directory. Default: /var/opt/senzing"
+                },
+            },
+        },
         'sleep': {
             "help": 'Do nothing but sleep. For Docker testing.',
             "arguments": {
@@ -195,7 +240,7 @@ def get_parser():
         },
     }
 
-    parser = argparse.ArgumentParser(prog="python-template.py", description="Example python skeleton. For more information, see https://github.com/Senzing/python-template")
+    parser = argparse.ArgumentParser(prog="init-container.py", description="Initialize Senzing installation. For more information, see https://github.com/Senzing/docker-init-container")
     subparsers = parser.add_subparsers(dest='subcommand', help='Subcommands (SENZING_SUBCOMMAND):')
 
     for subcommand_key, subcommand_values in subcommands.items():
@@ -1140,6 +1185,48 @@ def do_initialize(args):
     # Cleanup.
 
     delete_files(config)
+
+    # Epilog.
+
+    logging.info(exit_template(config))
+
+
+def do_initialize_database(args):
+    ''' Do a task. '''
+
+    # Get context from CLI, environment variables, and ini files.
+
+    config = get_configuration(args)
+
+    # Prolog.
+
+    logging.info(entry_template(config))
+
+    # Sleep, if requested.
+
+    init_container_sleep = config.get("init_container_sleep")
+    if init_container_sleep > 0:
+        logging.info(message_info(296, init_container_sleep))
+        time.sleep(init_container_sleep)
+
+    # Database specific operations.
+
+    database_initialization(config)
+
+    # Get Senzing resources.
+
+    g2_config = get_g2_config(config)
+    g2_configuration_manager = get_g2_configuration_manager(config)
+
+    # Initialize G2 database.
+
+    g2_initializer = G2Initializer(g2_configuration_manager, g2_config)
+    try:
+        default_config_id = g2_initializer.create_default_config_id()
+        if default_config_id:
+            logging.info(message_info(170, default_config_id.decode()))
+    except Exception as err:
+        logging.error(message_error(701, err, type(err.__cause__), err.__cause__))
 
     # Epilog.
 
