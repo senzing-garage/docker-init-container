@@ -23,6 +23,11 @@ The `senzing/init-container` performs Senzing initializations.
     1. [Space](#space)
     1. [Time](#time)
     1. [Background knowledge](#background-knowledge)
+1. [Demonstrate using Command Line](#demonstrate-using-command-line)
+    1. [Prerequisite software](#prerequisite-software)
+    1. [Clone repository](#clone-repository)
+    1. [Install](#install)
+    1. [Run commands](#run-commands)
 1. [Demonstrate using Docker](#demonstrate-using-docker)
     1. [Install Senzing](#install-senzing)
     1. [Configuration](#configuration)
@@ -32,8 +37,8 @@ The `senzing/init-container` performs Senzing initializations.
     1. [Docker user](#docker-user)
     1. [Run docker container](#run-docker-container)
 1. [Develop](#develop)
-    1. [Prerequisite software](#prerequisite-software)
-    1. [Clone repository](#clone-repository)
+    1. [Prerequisite software for development](#prerequisite-software-for-development)
+    1. [Clone repository for development](#clone-repository-for-development)
     1. [Build docker image for development](#build-docker-image-for-development)
 1. [Examples](#examples)
 1. [Errors](#errors)
@@ -115,7 +120,6 @@ The following software programs need to be installed:
       --data-binary @${GIT_REPOSITORY_DIR}/test/test-data-1.json \
       http://localhost:8252/resolve
     ```
-
 
 ## Demonstrate using Docker
 
@@ -263,7 +267,7 @@ Use if a different userid is required.
 
 ## Develop
 
-### Prerequisite software
+### Prerequisite software for development
 
 The following software programs need to be installed:
 
@@ -271,7 +275,7 @@ The following software programs need to be installed:
 1. [make](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-make.md)
 1. [docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-docker.md)
 
-### Clone repository
+### Clone repository for development
 
 For more information on environment variables,
 see [Environment Variables](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md).
