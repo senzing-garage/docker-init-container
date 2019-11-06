@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2019-11-06
+
+### Fixed in 1.3.3
+
+- Support non-root commandline invocation.
+
 ## [1.3.2] - 2019-11-02
 
 ### Fixed in 1.3.2
