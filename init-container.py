@@ -29,9 +29,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.3.3"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-02'
+__updated__ = '2019-11-06'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -52,10 +52,10 @@ reserved_character_list = [ ';', ',', '/', '?', ':', '@', '=', '&']
 # 1) Command line options, 2) Environment variables, 3) Configuration files, 4) Default values
 
 configuration_locator = {
-    "config_path": {
-        "default": "/etc/opt/senzing",
-        "env": "SENZING_CONFIG_PATH",
-        "cli": "config-path"
+    "data_dir": {
+        "default": "/opt/senzing/data",
+        "env": "SENZING_DATA_DIR",
+        "cli": "data-dir"
     },
     "debug": {
         "default": False,
@@ -66,11 +66,6 @@ configuration_locator = {
         "default": "/etc/opt/senzing",
         "env": "SENZING_ETC_DIR",
         "cli": "etc-dir"
-    },
-    "etc_template_dir": {
-        "default": "/etc/opt/senzing",
-        "env": "SENZING_ETC_TEMPLATE_DIR",
-        "cli": "etc-template-dir"
     },
     "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
@@ -97,11 +92,6 @@ configuration_locator = {
         "env": "SENZING_INIT_CONTAINER_SLEEP",
         "cli": "init-container-sleep"
     },
-    "resource_path": {
-        "default": "/opt/senzing/g2/resources",
-        "env": "SENZING_RESOURCE_PATH",
-        "cli": "resource-path"
-    },
     "sleep_time_in_seconds": {
         "default": 0,
         "env": "SENZING_SLEEP_TIME_IN_SECONDS",
@@ -110,11 +100,6 @@ configuration_locator = {
     "subcommand": {
         "default": None,
         "env": "SENZING_SUBCOMMAND",
-    },
-    "data_dir": {
-        "default": "/opt/senzing/data",
-        "env": "SENZING_DATA_DIR",
-        "cli": "data-dir"
     },
     "uid": {
         "default": 1001,
@@ -150,11 +135,51 @@ def get_parser():
         'initialize': {
             "help": 'Initialize a newly installed Senzing',
             "arguments": {
-                "--config-path": {
-                    "dest": "config_path",
-                    "metavar": "SENZING_CONFIG_PATH",
-                    "help": "Location of Senzing's configuration template. Default: /opt/senzing/g2/data"
+                "--database-url": {
+                    "dest": "g2_database_url",
+                    "metavar": "SENZING_DATABASE_URL",
+                    "help": "Information for connecting to database."
                 },
+                "--debug": {
+                    "dest": "debug",
+                    "action": "store_true",
+                    "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+                },
+                "--etc-dir": {
+                    "dest": "etc_dir",
+                    "metavar": "SENZING_ETC_DIR",
+                    "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
+                },
+                "--g2-dir": {
+                    "dest": "g2_dir",
+                    "metavar": "SENZING_G2_DIR",
+                    "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
+                },
+                "--gid": {
+                    "dest": "gid",
+                    "metavar": "SENZING_GID",
+                    "help": "GID for file ownership. Default: 1001"
+                },
+                "--data-dir": {
+                    "dest": "data_dir",
+                    "metavar": "SENZING_DATA_DIR",
+                    "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
+                },
+                "--uid": {
+                    "dest": "uid",
+                    "metavar": "SENZING_UID",
+                    "help": "UID for file ownership. Default: 1001"
+                },
+                "--var-dir": {
+                    "dest": "var_dir",
+                    "metavar": "SENZING_VAR_DIR",
+                    "help": "Location of senzing var directory. Default: /var/opt/senzing"
+                },
+            },
+        },
+        'initialize-database': {
+            "help": 'Initialize only the database. This is a subset of the full initialize sub-commmand',
+            "arguments": {
                 "--database-url": {
                     "dest": "g2_database_url",
                     "metavar": "SENZING_DATABASE_URL",
@@ -215,7 +240,7 @@ def get_parser():
         },
     }
 
-    parser = argparse.ArgumentParser(prog="python-template.py", description="Example python skeleton. For more information, see https://github.com/Senzing/python-template")
+    parser = argparse.ArgumentParser(prog="init-container.py", description="Initialize Senzing installation. For more information, see https://github.com/Senzing/docker-init-container")
     subparsers = parser.add_subparsers(dest='subcommand', help='Subcommands (SENZING_SUBCOMMAND):')
 
     for subcommand_key, subcommand_values in subcommands.items():
@@ -258,6 +283,7 @@ message_dictionary = {
     "161": "{0} - Backup of current {1}",
     "162": "{0} - Was not created because there is no {1}",
     "170": "Created new default config in SYS_CFG having ID {0}",
+    "171": "Default config in SYS_CFG already exists having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -662,6 +688,7 @@ class G2Initializer:
         # If a default configuration exists, there is nothing more to do.
 
         if default_config_id_bytearray:
+            logging.info(message_info(171, default_config_id_bytearray.decode()))
             return None
 
         # If there is no default configuration, create one in the 'configuration_bytearray' variable.
@@ -709,7 +736,6 @@ def change_file_permissions(config):
     # Pull information from config.
 
     etc_dir = config.get("etc_dir")
-    support_path = config.get("support_path")
     var_dir = config.get("var_dir")
     uid = config.get("uid")
     gid = config.get("gid")
@@ -843,10 +869,8 @@ def copy_files(config):
     # Get paths.
 
     etc_dir = config.get("etc_dir")
+    g2_dir = config.get("g2_dir")
     var_dir = config.get("var_dir")
-    config_path = config.get("config_path")
-    support_path = config.get("support_path")
-    resource_path = config.get("resource_path")
 
     # Files to copy.
 
@@ -869,7 +893,7 @@ def copy_files(config):
             "source_file": "{0}/sqlite/G2C.db".format(var_dir),
             "target_file": "{0}/sqlite/G2C.db.template".format(var_dir),
         }, {
-            "source_file": "{0}/templates/G2C.db.template".format(resource_path),
+            "source_file": "{0}/resources/templates/G2C.db.template".format(g2_dir),
             "target_file": "{0}/sqlite/G2C.db".format(var_dir),
         }
     ]
@@ -890,7 +914,7 @@ def copy_files(config):
         # Handle files from 1.12+.
 
         from_templates = {
-            "source_file": "{0}/templates/{1}".format(resource_path, template_file_name),
+            "source_file": "{0}/resources/templates/{1}".format(g2_dir, template_file_name),
             "target_file": "{0}/{1}".format(etc_dir, actual_file_name),
         }
         files.append(from_templates)
@@ -1040,9 +1064,9 @@ def get_g2_configuration_dictionary(config):
     ''' Construct a dictionary in the form of the old ini files. '''
     result = {
         "PIPELINE": {
-            "CONFIGPATH": config.get("config_path"),
-            "RESOURCEPATH": config.get("resource_path"),
-            "SUPPORTPATH": config.get("support_path"),
+            "CONFIGPATH": config.get("etc_dir"),
+            "RESOURCEPATH": "{0}/resources".format(config.get("g2_dir")),
+            "SUPPORTPATH": config.get("data_dir"),
         },
         "SQL": {
             "CONNECTION": config.get("g2_database_url_raw"),
@@ -1163,6 +1187,48 @@ def do_initialize(args):
     # Cleanup.
 
     delete_files(config)
+
+    # Epilog.
+
+    logging.info(exit_template(config))
+
+
+def do_initialize_database(args):
+    ''' Do a task. '''
+
+    # Get context from CLI, environment variables, and ini files.
+
+    config = get_configuration(args)
+
+    # Prolog.
+
+    logging.info(entry_template(config))
+
+    # Sleep, if requested.
+
+    init_container_sleep = config.get("init_container_sleep")
+    if init_container_sleep > 0:
+        logging.info(message_info(296, init_container_sleep))
+        time.sleep(init_container_sleep)
+
+    # Database specific operations.
+
+    database_initialization(config)
+
+    # Get Senzing resources.
+
+    g2_config = get_g2_config(config)
+    g2_configuration_manager = get_g2_configuration_manager(config)
+
+    # Initialize G2 database.
+
+    g2_initializer = G2Initializer(g2_configuration_manager, g2_config)
+    try:
+        default_config_id = g2_initializer.create_default_config_id()
+        if default_config_id:
+            logging.info(message_info(170, default_config_id.decode()))
+    except Exception as err:
+        logging.error(message_error(701, err, type(err.__cause__), err.__cause__))
 
     # Epilog.
 
