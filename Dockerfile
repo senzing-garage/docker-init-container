@@ -20,7 +20,7 @@ COPY init-container.py /app
 
 # Make non-root container.
 
-USER 1001
+USER 1001:1001
 
 # Runtime execution.
 

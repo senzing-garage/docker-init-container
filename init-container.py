@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-05'
+__updated__ = '2019-11-06'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -52,10 +52,10 @@ reserved_character_list = [ ';', ',', '/', '?', ':', '@', '=', '&']
 # 1) Command line options, 2) Environment variables, 3) Configuration files, 4) Default values
 
 configuration_locator = {
-    "config_path": {
-        "default": "/etc/opt/senzing",
-        "env": "SENZING_CONFIG_PATH",
-        "cli": "config-path"
+    "data_dir": {
+        "default": "/opt/senzing/data",
+        "env": "SENZING_DATA_DIR",
+        "cli": "data-dir"
     },
     "debug": {
         "default": False,
@@ -66,11 +66,6 @@ configuration_locator = {
         "default": "/etc/opt/senzing",
         "env": "SENZING_ETC_DIR",
         "cli": "etc-dir"
-    },
-    "etc_template_dir": {
-        "default": "/etc/opt/senzing",
-        "env": "SENZING_ETC_TEMPLATE_DIR",
-        "cli": "etc-template-dir"
     },
     "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
@@ -97,11 +92,6 @@ configuration_locator = {
         "env": "SENZING_INIT_CONTAINER_SLEEP",
         "cli": "init-container-sleep"
     },
-    "resource_path": {
-        "default": "/opt/senzing/g2/resources",
-        "env": "SENZING_RESOURCE_PATH",
-        "cli": "resource-path"
-    },
     "sleep_time_in_seconds": {
         "default": 0,
         "env": "SENZING_SLEEP_TIME_IN_SECONDS",
@@ -110,11 +100,6 @@ configuration_locator = {
     "subcommand": {
         "default": None,
         "env": "SENZING_SUBCOMMAND",
-    },
-    "data_dir": {
-        "default": "/opt/senzing/data",
-        "env": "SENZING_DATA_DIR",
-        "cli": "data-dir"
     },
     "uid": {
         "default": 1001,
@@ -150,11 +135,6 @@ def get_parser():
         'initialize': {
             "help": 'Initialize a newly installed Senzing',
             "arguments": {
-                "--config-path": {
-                    "dest": "config_path",
-                    "metavar": "SENZING_CONFIG_PATH",
-                    "help": "Location of Senzing's configuration template. Default: /opt/senzing/g2/data"
-                },
                 "--database-url": {
                     "dest": "g2_database_url",
                     "metavar": "SENZING_DATABASE_URL",
@@ -709,7 +689,6 @@ def change_file_permissions(config):
     # Pull information from config.
 
     etc_dir = config.get("etc_dir")
-    support_path = config.get("support_path")
     var_dir = config.get("var_dir")
     uid = config.get("uid")
     gid = config.get("gid")
@@ -843,10 +822,8 @@ def copy_files(config):
     # Get paths.
 
     etc_dir = config.get("etc_dir")
+    g2_dir = config.get("g2_dir")
     var_dir = config.get("var_dir")
-    config_path = config.get("config_path")
-    support_path = config.get("support_path")
-    resource_path = config.get("resource_path")
 
     # Files to copy.
 
@@ -869,7 +846,7 @@ def copy_files(config):
             "source_file": "{0}/sqlite/G2C.db".format(var_dir),
             "target_file": "{0}/sqlite/G2C.db.template".format(var_dir),
         }, {
-            "source_file": "{0}/templates/G2C.db.template".format(resource_path),
+            "source_file": "{0}/resources/templates/G2C.db.template".format(g2_dir),
             "target_file": "{0}/sqlite/G2C.db".format(var_dir),
         }
     ]
@@ -890,7 +867,7 @@ def copy_files(config):
         # Handle files from 1.12+.
 
         from_templates = {
-            "source_file": "{0}/templates/{1}".format(resource_path, template_file_name),
+            "source_file": "{0}/resources/templates/{1}".format(g2_dir, template_file_name),
             "target_file": "{0}/{1}".format(etc_dir, actual_file_name),
         }
         files.append(from_templates)
@@ -1040,9 +1017,9 @@ def get_g2_configuration_dictionary(config):
     ''' Construct a dictionary in the form of the old ini files. '''
     result = {
         "PIPELINE": {
-            "CONFIGPATH": config.get("config_path"),
-            "RESOURCEPATH": config.get("resource_path"),
-            "SUPPORTPATH": config.get("support_path"),
+            "CONFIGPATH": config.get("etc_dir"),
+            "RESOURCEPATH": "{0}/resources".format(config.get("g2_dir")),
+            "SUPPORTPATH": config.get("data_dir"),
         },
         "SQL": {
             "CONNECTION": config.get("g2_database_url_raw"),
