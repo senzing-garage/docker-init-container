@@ -283,6 +283,7 @@ message_dictionary = {
     "161": "{0} - Backup of current {1}",
     "162": "{0} - Was not created because there is no {1}",
     "170": "Created new default config in SYS_CFG having ID {0}",
+    "171": "Default config in SYS_CFG already exists having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -687,6 +688,7 @@ class G2Initializer:
         # If a default configuration exists, there is nothing more to do.
 
         if default_config_id_bytearray:
+            logging.info(message_info(171, default_config_id_bytearray.decode()))
             return None
 
         # If there is no default configuration, create one in the 'configuration_bytearray' variable.
