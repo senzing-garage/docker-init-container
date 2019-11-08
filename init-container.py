@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.3.3"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-07'
+__updated__ = '2019-11-08'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -993,6 +993,40 @@ def database_initialization_db2(config, parsed_database_url):
             logging.info(message_info(161, backup_filename, output_filename))
 
 
+def database_initialization_mssql(config, parsed_database_url):
+
+    input_filename = "/etc/odbc.ini.mssql-template"
+    output_filename = "/opt/microsoft/msodbcsql17/etc/odbc.ini"
+    backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
+
+    # Detect error and exit, if needed.
+
+    if not os.path.exists(input_filename):
+        logging.warning(message_warning(510, input_filename))
+        return
+
+    # Backup existing file.
+
+    if os.path.exists(output_filename):
+        os.rename(output_filename, backup_filename)
+
+    # Create new file from input_filename template.
+
+    with open(input_filename, 'r') as in_file:
+        with open(output_filename, 'w') as out_file:
+            for line in in_file:
+                out_file.write(line.format(**parsed_database_url))
+    logging.info(message_info(160, output_filename, input_filename))
+
+    # Remove backup file if it is the same as the new file.
+
+    if os.path.exists(backup_filename):
+        if filecmp.cmp(output_filename, backup_filename):
+            os.remove(backup_filename)
+        else:
+            logging.info(message_info(161, backup_filename, output_filename))
+
+
 def database_initialization_mysql(config):
 
     url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.16-2debian9_amd64.deb"
@@ -1051,7 +1085,7 @@ def database_initialization(config):
     elif scheme in ['sqlite3']:
         pass
     elif scheme in ['mssql']:
-        pass
+        result = database_initialization_mssql(config, parsed_database_url)
     else:
         logging.error(message_error(695, scheme, database_url))
 
