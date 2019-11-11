@@ -96,7 +96,7 @@ The following software programs need to be installed:
 ### Install Senzing
 
 1. If Senzing files have not been installed, visit
-   [HOWTO - Install Senzing API](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-api.md#docker).
+   "[How to install Senzing API](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-api.md#docker)".
 
 ### Configuration
 
@@ -114,7 +114,7 @@ Configuration values specified by environment variable or command line parameter
 ### Volumes
 
 :thinking:
-"[How to initialize Senzing with Docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/initialize-senzing-with-docker.md)"
+"[How to install Senzing API](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-api.md#docker)"
 places files in different directories.
 The following examples show how to identify each output directory.
 
