@@ -91,36 +91,6 @@ The following software programs need to be installed:
 
 ### Run commands
 
-1. :pencil2: Run command for file input/output.
-   Note: **GIT_REPOSITORY_DIR** needs to be set.
-   Example:
-
-    ```console
-    cd ${GIT_REPOSITORY_DIR}
-    ./resolver.py file-input \
-      --input-file test/test-data-1.json
-    ```
-
-1. :pencil2: Run command for starting HTTP API.
-   Note: **GIT_REPOSITORY_DIR** needs to be set.
-   Example:
-
-    ```console
-    cd ${GIT_REPOSITORY_DIR}
-    ./resolver.py service
-    ```
-
-1. Test HTTP API.
-   Note: **GIT_REPOSITORY_DIR** needs to be set.
-   Example:
-
-    ```console
-    curl -X POST \
-      --header "Content-Type: text/plain" \
-      --data-binary @${GIT_REPOSITORY_DIR}/test/test-data-1.json \
-      http://localhost:8252/resolve
-    ```
-
 ## Demonstrate using Docker
 
 ### Install Senzing
