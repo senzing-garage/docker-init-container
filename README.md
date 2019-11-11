@@ -113,10 +113,12 @@ Configuration values specified by environment variable or command line parameter
 
 ### Volumes
 
-The output of `yum install senzingapi` placed files in different directories.
-Create a folder for each output directory.
+:thinking:
+"[How to initialize Senzing with Docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/initialize-senzing-with-docker.md)"
+places files in different directories.
+The following examples show how to identify each output directory.
 
-1. :pencil2: Option #1.
+1. **Example #1:**
    To mimic an actual RPM installation,
    identify directories for RPM output in this manner:
 
@@ -127,7 +129,7 @@ Create a folder for each output directory.
     export SENZING_VAR_DIR=/var/opt/senzing
     ```
 
-1. :pencil2: Option #2.
+1. :pencil2: **Example #2:**
    If Senzing directories were put in alternative directories,
    set environment variables to reflect where the directories were placed.
    Example:
@@ -139,6 +141,13 @@ Create a folder for each output directory.
     export SENZING_ETC_DIR=${SENZING_VOLUME}/etc
     export SENZING_G2_DIR=${SENZING_VOLUME}/g2
     export SENZING_VAR_DIR=${SENZING_VOLUME}/var
+    ```
+
+1. :thinking: If internal database is used, permissions may need to be changed in `/var/opt/senzing`.
+   Example:
+
+    ```console
+    sudo chmod -R 777 ${SENZING_VAR_DIR}
     ```
 
 ### Docker network
@@ -200,7 +209,7 @@ Create a folder for each output directory.
 ### Docker user
 
 :thinking: **Optional:**  The docker container runs as "USER 1001".
-Use if a different userid is required.
+Use if a different userid (UID) is required.
 
 1. :pencil2: Identify user.
    User "0" is root.
@@ -224,14 +233,14 @@ Use if a different userid is required.
 
     ```console
     sudo docker run \
-      ${SENZING_RUNAS_USER_PARAMETER} \
-      ${SENZING_DATABASE_URL_PARAMETER} \
-      ${SENZING_NETWORK_PARAMETER} \
       --rm \
       --volume ${SENZING_DATA_VERSION_DIR}:/opt/senzing/data \
       --volume ${SENZING_ETC_DIR}:/etc/opt/senzing \
       --volume ${SENZING_G2_DIR}:/opt/senzing/g2 \
       --volume ${SENZING_VAR_DIR}:/var/opt/senzing \
+      ${SENZING_RUNAS_USER_PARAMETER} \
+      ${SENZING_DATABASE_URL_PARAMETER} \
+      ${SENZING_NETWORK_PARAMETER} \
       senzing/init-container
     ```
 
@@ -263,20 +272,20 @@ see [Environment Variables](https://github.com/Senzing/knowledge-base/blob/maste
 
 ### Build docker image for development
 
-1. Option #1 - Using `docker` command and GitHub.
+1. **Option #1:** Using `docker` command and GitHub.
 
     ```console
     sudo docker build --tag senzing/init-container https://github.com/senzing/docker-init-container.git
     ```
 
-1. Option #2 - Using `docker` command and local repository.
+1. **Option #2:** Using `docker` command and local repository.
 
     ```console
     cd ${GIT_REPOSITORY_DIR}
     sudo docker build --tag senzing/init-container .
     ```
 
-1. Option #3 - Using `make` command.
+1. **Option #3:** Using `make` command.
 
     ```console
     cd ${GIT_REPOSITORY_DIR}
