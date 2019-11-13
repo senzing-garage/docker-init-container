@@ -29,7 +29,7 @@ The `senzing/init-container` performs Senzing initializations.
     1. [Install](#install)
     1. [Run commands](#run-commands)
 1. [Demonstrate using Docker](#demonstrate-using-docker)
-    1. [Install Senzing](#install-senzing)
+    1. [Initialize Senzing](#initialize-senzing)
     1. [Configuration](#configuration)
     1. [Volumes](#volumes)
     1. [Docker network](#docker-network)
@@ -93,10 +93,10 @@ The following software programs need to be installed:
 
 ## Demonstrate using Docker
 
-### Install Senzing
+### Initialize Senzing
 
-1. If Senzing files have not been installed, visit
-   "[How to install Senzing API](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-api.md#docker)".
+1. If Senzing has not been initialized, visit
+   "[How to initialize Senzing with Docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/initialize-senzing-with-docker.md)".
 
 ### Configuration
 
@@ -114,7 +114,7 @@ Configuration values specified by environment variable or command line parameter
 ### Volumes
 
 :thinking:
-"[How to install Senzing API](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-api.md#docker)"
+"[How to initialize Senzing with Docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/initialize-senzing-with-docker.md)"
 places files in different directories.
 The following examples show how to identify each output directory.
 
