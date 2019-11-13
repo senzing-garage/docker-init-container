@@ -1,0 +1,6 @@
+[{schema}]
+Database = {schema}
+Description = Senzing MS SQL database for {schema}
+Driver = ODBC Driver 17 for SQL Server
+Port = {port}
+Server = {hostname}

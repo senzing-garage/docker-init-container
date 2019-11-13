@@ -29,9 +29,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.3.3"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-06'
+__updated__ = '2019-11-12'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -179,6 +179,51 @@ def get_parser():
         },
         'initialize-database': {
             "help": 'Initialize only the database. This is a subset of the full initialize sub-commmand',
+            "arguments": {
+                "--database-url": {
+                    "dest": "g2_database_url",
+                    "metavar": "SENZING_DATABASE_URL",
+                    "help": "Information for connecting to database."
+                },
+                "--debug": {
+                    "dest": "debug",
+                    "action": "store_true",
+                    "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+                },
+                "--etc-dir": {
+                    "dest": "etc_dir",
+                    "metavar": "SENZING_ETC_DIR",
+                    "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
+                },
+                "--g2-dir": {
+                    "dest": "g2_dir",
+                    "metavar": "SENZING_G2_DIR",
+                    "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
+                },
+                "--gid": {
+                    "dest": "gid",
+                    "metavar": "SENZING_GID",
+                    "help": "GID for file ownership. Default: 1001"
+                },
+                "--data-dir": {
+                    "dest": "data_dir",
+                    "metavar": "SENZING_DATA_DIR",
+                    "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
+                },
+                "--uid": {
+                    "dest": "uid",
+                    "metavar": "SENZING_UID",
+                    "help": "UID for file ownership. Default: 1001"
+                },
+                "--var-dir": {
+                    "dest": "var_dir",
+                    "metavar": "SENZING_VAR_DIR",
+                    "help": "Location of senzing var directory. Default: /var/opt/senzing"
+                },
+            },
+        },
+        'initialize-files': {
+            "help": 'Initialize only the files. This is a subset of the full initialize sub-commmand',
             "arguments": {
                 "--database-url": {
                     "dest": "g2_database_url",
@@ -487,6 +532,8 @@ def get_g2_database_url_raw(generic_database_url):
         result = "{scheme}://{username}:{password}@{schema}".format(**parsed_database_url)
     elif scheme in ['sqlite3']:
         result = "{scheme}://{netloc}{path}".format(**parsed_database_url)
+    elif scheme in ['mssql']:
+        result = "{scheme}://{username}:{password}@{schema}".format(**parsed_database_url)
     else:
         logging.error(message_error(695, scheme, generic_database_url))
 
@@ -993,6 +1040,40 @@ def database_initialization_db2(config, parsed_database_url):
             logging.info(message_info(161, backup_filename, output_filename))
 
 
+def database_initialization_mssql(config, parsed_database_url):
+
+    input_filename = "/etc/odbc.ini.mssql-template"
+    output_filename = "/opt/microsoft/msodbcsql17/etc/odbc.ini"
+    backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
+
+    # Detect error and exit, if needed.
+
+    if not os.path.exists(input_filename):
+        logging.warning(message_warning(510, input_filename))
+        return
+
+    # Backup existing file.
+
+    if os.path.exists(output_filename):
+        os.rename(output_filename, backup_filename)
+
+    # Create new file from input_filename template.
+
+    with open(input_filename, 'r') as in_file:
+        with open(output_filename, 'w') as out_file:
+            for line in in_file:
+                out_file.write(line.format(**parsed_database_url))
+    logging.info(message_info(160, output_filename, input_filename))
+
+    # Remove backup file if it is the same as the new file.
+
+    if os.path.exists(backup_filename):
+        if filecmp.cmp(output_filename, backup_filename):
+            os.remove(backup_filename)
+        else:
+            logging.info(message_info(161, backup_filename, output_filename))
+
+
 def database_initialization_mysql(config):
 
     url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.16-2debian9_amd64.deb"
@@ -1050,6 +1131,8 @@ def database_initialization(config):
         result = database_initialization_db2(config, parsed_database_url)
     elif scheme in ['sqlite3']:
         pass
+    elif scheme in ['mssql']:
+        result = database_initialization_mssql(config, parsed_database_url)
     else:
         logging.error(message_error(695, scheme, database_url))
 
@@ -1229,6 +1312,47 @@ def do_initialize_database(args):
             logging.info(message_info(170, default_config_id.decode()))
     except Exception as err:
         logging.error(message_error(701, err, type(err.__cause__), err.__cause__))
+
+    # Epilog.
+
+    logging.info(exit_template(config))
+
+
+def do_initialize_files(args):
+    ''' Do a task. '''
+
+    # Get context from CLI, environment variables, and ini files.
+
+    config = get_configuration(args)
+
+    # Prolog.
+
+    logging.info(entry_template(config))
+
+    # Sleep, if requested.
+
+    init_container_sleep = config.get("init_container_sleep")
+    if init_container_sleep > 0:
+        logging.info(message_info(296, init_container_sleep))
+        time.sleep(init_container_sleep)
+
+    # Manipulate files.
+
+    copy_files(config)
+    change_file_permissions(config)
+
+    # Change ini files
+
+    change_module_ini(config)
+    change_project_ini(config)
+
+    # Database specific operations.
+
+    database_initialization(config)
+
+    # Cleanup.
+
+    delete_files(config)
 
     # Epilog.
 
