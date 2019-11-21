@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-12'
+__updated__ = '2019-11-21'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -1109,7 +1109,8 @@ def database_initialization_mysql(config):
     # Make a soft link
 
     if not os.path.exists(libmysqlclient_link):
-        os.symlink(libmysqlclient, libmysqlclient_link)
+        libmysqlclient_filename = os.path.basename(libmysqlclient)
+        os.symlink(libmysqlclient_filename, libmysqlclient_link)
         logging.info(message_info(158, libmysqlclient_link, libmysqlclient))
 
 
@@ -1293,10 +1294,6 @@ def do_initialize_database(args):
     if init_container_sleep > 0:
         logging.info(message_info(296, init_container_sleep))
         time.sleep(init_container_sleep)
-
-    # Database specific operations.
-
-    database_initialization(config)
 
     # Get Senzing resources.
 
