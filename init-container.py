@@ -67,6 +67,21 @@ configuration_locator = {
         "env": "SENZING_ETC_DIR",
         "cli": "etc-dir"
     },
+    "enable_db2": {
+        "default": False,
+        "env": "SENZING_ENABLE_DB2",
+        "cli": "enable-db2"
+    },
+    "enable_mssql": {
+        "default": False,
+        "env": "SENZING_ENABLE_MSSQL",
+        "cli": "enable-mssql"
+    },
+    "enable_mysql": {
+        "default": False,
+        "env": "SENZING_ENABLE_MYSQL",
+        "cli": "enable-mysql"
+    },
     "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
         "env": "SENZING_DATABASE_URL",
@@ -106,6 +121,11 @@ configuration_locator = {
         "env": "SENZING_UID",
         "cli": "uid"
     },
+    "update_ini_files": {
+        "default": False,
+        "env": "SENZING_UPDATE_INI_FILES",
+        "cli": "update-ini-files"
+    },
     "var_dir": {
         "default": "/var/opt/senzing",
         "env": "SENZING_VAR_DIR",
@@ -144,6 +164,21 @@ def get_parser():
                     "dest": "debug",
                     "action": "store_true",
                     "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+                },
+                "--enable-db2": {
+                    "dest": "enable_db2",
+                    "action": "store_true",
+                    "help": "Enable db2 database. (SENZING_ENABLE_DB2) Default: False"
+                },
+                "--enable-mssql": {
+                    "dest": "enable_mssql",
+                    "action": "store_true",
+                    "help": "Enable MS SQL database. (SENZING_ENABLE_MSSQL) Default: False"
+                },
+                "--enable-mysql": {
+                    "dest": "enable_mysql",
+                    "action": "store_true",
+                    "help": "Enable MySQL database. (SENZING_ENABLE_MYSQL) Default: False"
                 },
                 "--etc-dir": {
                     "dest": "etc_dir",
@@ -200,20 +235,15 @@ def get_parser():
                     "metavar": "SENZING_G2_DIR",
                     "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
                 },
-                "--gid": {
-                    "dest": "gid",
-                    "metavar": "SENZING_GID",
-                    "help": "GID for file ownership. Default: 1001"
-                },
                 "--data-dir": {
                     "dest": "data_dir",
                     "metavar": "SENZING_DATA_DIR",
                     "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
                 },
-                "--uid": {
-                    "dest": "uid",
-                    "metavar": "SENZING_UID",
-                    "help": "UID for file ownership. Default: 1001"
+                "--update-ini-files": {
+                    "dest": "update_ini_files",
+                    "action": "store_true",
+                    "help": "Update INI files: G2Module.ini, G2Project.ini. (SENZING_UPDATE_INI_FILES) Default: False"
                 },
                 "--var-dir": {
                     "dest": "var_dir",
@@ -234,6 +264,21 @@ def get_parser():
                     "dest": "debug",
                     "action": "store_true",
                     "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+                },
+                "--enable-db2": {
+                    "dest": "enable_db2",
+                    "action": "store_true",
+                    "help": "Enable db2 database. (SENZING_ENABLE_DB2) Default: False"
+                },
+                "--enable-mssql": {
+                    "dest": "enable_mssql",
+                    "action": "store_true",
+                    "help": "Enable MS SQL database. (SENZING_ENABLE_MSSQL) Default: False"
+                },
+                "--enable-mysql": {
+                    "dest": "enable_mysql",
+                    "action": "store_true",
+                    "help": "Enable MySQL database. (SENZING_ENABLE_MYSQL) Default: False"
                 },
                 "--etc-dir": {
                     "dest": "etc_dir",
@@ -279,41 +324,6 @@ def get_parser():
         },
         'version': {
             "help": 'Print version of program.',
-        },
-        'update-database-url': {
-            "help": 'Change database URL in configuration files.',
-            "arguments": {
-                "--database-url": {
-                    "dest": "g2_database_url",
-                    "metavar": "SENZING_DATABASE_URL",
-                    "help": "Information for connecting to database."
-                },
-                "--debug": {
-                    "dest": "debug",
-                    "action": "store_true",
-                    "help": "Enable debugging. (SENZING_DEBUG) Default: False"
-                },
-                "--etc-dir": {
-                    "dest": "etc_dir",
-                    "metavar": "SENZING_ETC_DIR",
-                    "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
-                },
-                "--g2-dir": {
-                    "dest": "g2_dir",
-                    "metavar": "SENZING_G2_DIR",
-                    "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
-                },
-                "--data-dir": {
-                    "dest": "data_dir",
-                    "metavar": "SENZING_DATA_DIR",
-                    "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
-                },
-                "--var-dir": {
-                    "dest": "var_dir",
-                    "metavar": "SENZING_VAR_DIR",
-                    "help": "Location of senzing var directory. Default: /var/opt/senzing"
-                },
-            },
         },
         'docker-acceptance-test': {
             "help": 'For Docker acceptance testing.',
@@ -614,7 +624,13 @@ def get_configuration(args):
 
     # Special case: Change boolean strings to booleans.
 
-    booleans = ['debug']
+    booleans = [
+        'debug',
+        'enable_db2'
+        'enable_mssql',
+        'enable_mysql',
+        'update_ini_files'
+    ]
     for boolean in booleans:
         boolean_value = result.get(boolean)
         if isinstance(boolean_value, str):
@@ -813,6 +829,42 @@ class G2Initializer:
 # -----------------------------------------------------------------------------
 
 
+def change_directory_ownership(config):
+
+    etc_dir = config.get("etc_dir")
+    var_dir = config.get("var_dir")
+    uid = config.get("uid")
+    gid = config.get("gid")
+
+    directories = [
+        etc_dir,
+        var_dir,
+        "/opt/microsoft/msodbcsql17/etc/",
+        "/opt/IBM/db2/clidriver/cfg/"
+    ]
+
+    for directory in directories:
+        actual_uid = os.stat(directory).st_uid
+        actual_gid = os.stat(directory).st_gid
+        os.chown(directory, int(uid), int(gid))
+        logging.info(message_info(152, directory, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+
+        for root, dirs, files in os.walk(directory):
+            for dir in dirs:
+                dirname = os.path.join(root, dir)
+                actual_uid = os.stat(dirname).st_uid
+                actual_gid = os.stat(dirname).st_gid
+                os.chown(dirname, int(uid), int(gid))
+                logging.info(message_info(152, dirname, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+
+            for file in files:
+                filename = os.path.join(root, file)
+                actual_uid = os.stat(filename).st_uid
+                actual_gid = os.stat(filename).st_gid
+                os.chown(filename, int(uid), int(gid))
+                logging.info(message_info(152, filename, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+
+
 def change_file_permissions(config):
 
     # Pull information from config.
@@ -852,6 +904,18 @@ def change_file_permissions(config):
         {
             "filename": "{0}/sqlite/G2C.db.template".format(var_dir),
             "permissions": 0o440,
+            "uid": uid,
+            "gid": gid,
+        },
+        {
+            "filename": "/opt/microsoft/msodbcsql17/etc/odbc.ini",
+            "permissions": 0o750,
+            "uid": uid,
+            "gid": gid,
+        },
+        {
+            "filename": "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg",
+            "permissions": 0o750,
             "uid": uid,
             "gid": gid,
         },
@@ -1166,22 +1230,27 @@ def database_initialization(config):
 
     result = ""
     database_url = config.get('g2_database_url')
+    enable_db2 = config.get('enable_db2')
+    enable_mssql = config.get('enable_mssql')
+    enable_mysql = config.get('enable_mssql')
+
     parsed_database_url = parse_database_url(database_url)
     scheme = parsed_database_url.get('scheme')
 
     # Format database URL for a particular database.
 
-    if scheme in ['mysql']:
+    if scheme in ['mysql'] or enable_mysql:
         result = database_initialization_mysql(config)
-    elif scheme in ['postgresql']:
+    if scheme in ['postgresql']:
         pass
-    elif scheme in ['db2']:
+    if scheme in ['db2'] or enable_db2:
         result = database_initialization_db2(config, parsed_database_url)
-    elif scheme in ['sqlite3']:
+    if scheme in ['sqlite3']:
         pass
-    elif scheme in ['mssql']:
+    if scheme in ['mssql'] or enable_mssql:
         result = database_initialization_mssql(config, parsed_database_url)
-    else:
+
+    if scheme not in ['db2', 'mssql', 'mysql', 'sqlite3']:
         logging.error(message_error(695, scheme, database_url))
 
     return result
@@ -1286,10 +1355,9 @@ def do_initialize(args):
         logging.info(message_info(296, init_container_sleep))
         time.sleep(init_container_sleep)
 
-    # Manipulate files.
+    # Copy files.
 
     copy_files(config)
-    change_file_permissions(config)
 
     # Change ini files
 
@@ -1299,6 +1367,11 @@ def do_initialize(args):
     # Database specific operations.
 
     database_initialization(config)
+
+    # Manipulate files.
+
+    change_directory_ownership(config)
+    change_file_permissions(config)
 
     # Get Senzing resources.
 
@@ -1328,12 +1401,22 @@ def do_initialize_database(args):
     ''' Do a task. '''
 
     # Get context from CLI, environment variables, and ini files.
+    # A g2_database_url must be explicitly defined.
 
+    configuration_locator['g2_database_url']['default'] = None
     config = get_configuration(args)
 
     # Prolog.
 
     logging.info(entry_template(config))
+
+    # Update database configuration files.
+
+    if config.get('g2_database_url'):
+        database_initialization(config)
+        if config.get('update_ini_files'):
+            change_module_ini(config)
+            change_project_ini(config)
 
     # Get Senzing resources.
 
@@ -1366,10 +1449,9 @@ def do_initialize_files(args):
 
     logging.info(entry_template(config))
 
-    # Manipulate files.
+    # Copy files.
 
     copy_files(config)
-    change_file_permissions(config)
 
     # Change ini files
 
@@ -1379,6 +1461,11 @@ def do_initialize_files(args):
     # Database specific operations.
 
     database_initialization(config)
+
+    # Manipulate files.
+
+    change_directory_ownership(config)
+    change_file_permissions(config)
 
     # Cleanup.
 
@@ -1415,31 +1502,6 @@ def do_sleep(args):
         while True:
             logging.info(message_info(295))
             time.sleep(sleep_time_in_seconds)
-
-    # Epilog.
-
-    logging.info(exit_template(config))
-
-
-def do_update_database_url(args):
-    ''' Do a task. '''
-
-    # Get context from CLI, environment variables, and ini files.
-
-    config = get_configuration(args)
-
-    # Prolog.
-
-    logging.info(entry_template(config))
-
-    # Change ini files
-
-    change_module_ini(config)
-    change_project_ini(config)
-
-    # Database specific operations.
-
-    database_initialization(config)
 
     # Epilog.
 
