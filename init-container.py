@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-21'
+__updated__ = '2019-11-22'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -279,6 +279,41 @@ def get_parser():
         },
         'version': {
             "help": 'Print version of program.',
+        },
+        'update-database-url': {
+            "help": 'Change database URL in configuration files.',
+            "arguments": {
+                "--database-url": {
+                    "dest": "g2_database_url",
+                    "metavar": "SENZING_DATABASE_URL",
+                    "help": "Information for connecting to database."
+                },
+                "--debug": {
+                    "dest": "debug",
+                    "action": "store_true",
+                    "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+                },
+                "--etc-dir": {
+                    "dest": "etc_dir",
+                    "metavar": "SENZING_ETC_DIR",
+                    "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
+                },
+                "--g2-dir": {
+                    "dest": "g2_dir",
+                    "metavar": "SENZING_G2_DIR",
+                    "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
+                },
+                "--data-dir": {
+                    "dest": "data_dir",
+                    "metavar": "SENZING_DATA_DIR",
+                    "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
+                },
+                "--var-dir": {
+                    "dest": "var_dir",
+                    "metavar": "SENZING_VAR_DIR",
+                    "help": "Location of senzing var directory. Default: /var/opt/senzing"
+                },
+            },
         },
         'docker-acceptance-test': {
             "help": 'For Docker acceptance testing.',
@@ -791,6 +826,18 @@ def change_file_permissions(config):
 
     files = [
         {
+            "filename": "{0}/G2Module.ini".format(etc_dir),
+            "permissions": 0o750,
+            "uid": uid,
+            "gid": gid,
+        },
+        {
+            "filename": "{0}/G2Project.ini".format(etc_dir),
+            "permissions": 0o750,
+            "uid": uid,
+            "gid": gid,
+        },
+        {
             "filename": "{0}/sqlite".format(var_dir),
             "permissions": 0o750,
             "uid": uid,
@@ -1288,13 +1335,6 @@ def do_initialize_database(args):
 
     logging.info(entry_template(config))
 
-    # Sleep, if requested.
-
-    init_container_sleep = config.get("init_container_sleep")
-    if init_container_sleep > 0:
-        logging.info(message_info(296, init_container_sleep))
-        time.sleep(init_container_sleep)
-
     # Get Senzing resources.
 
     g2_config = get_g2_config(config)
@@ -1325,13 +1365,6 @@ def do_initialize_files(args):
     # Prolog.
 
     logging.info(entry_template(config))
-
-    # Sleep, if requested.
-
-    init_container_sleep = config.get("init_container_sleep")
-    if init_container_sleep > 0:
-        logging.info(message_info(296, init_container_sleep))
-        time.sleep(init_container_sleep)
 
     # Manipulate files.
 
@@ -1382,6 +1415,31 @@ def do_sleep(args):
         while True:
             logging.info(message_info(295))
             time.sleep(sleep_time_in_seconds)
+
+    # Epilog.
+
+    logging.info(exit_template(config))
+
+
+def do_update_database_url(args):
+    ''' Do a task. '''
+
+    # Get context from CLI, environment variables, and ini files.
+
+    config = get_configuration(args)
+
+    # Prolog.
+
+    logging.info(entry_template(config))
+
+    # Change ini files
+
+    change_module_ini(config)
+    change_project_ini(config)
+
+    # Database specific operations.
+
+    database_initialization(config)
 
     # Epilog.
 
