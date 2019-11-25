@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-22'
+__updated__ = '2019-11-25'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -844,25 +844,26 @@ def change_directory_ownership(config):
     ]
 
     for directory in directories:
-        actual_uid = os.stat(directory).st_uid
-        actual_gid = os.stat(directory).st_gid
-        os.chown(directory, int(uid), int(gid))
-        logging.info(message_info(152, directory, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+        if os.path.isdir(directory):
+            actual_uid = os.stat(directory).st_uid
+            actual_gid = os.stat(directory).st_gid
+            os.chown(directory, int(uid), int(gid))
+            logging.info(message_info(152, directory, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
 
-        for root, dirs, files in os.walk(directory):
-            for dir in dirs:
-                dirname = os.path.join(root, dir)
-                actual_uid = os.stat(dirname).st_uid
-                actual_gid = os.stat(dirname).st_gid
-                os.chown(dirname, int(uid), int(gid))
-                logging.info(message_info(152, dirname, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+            for root, dirs, files in os.walk(directory):
+                for dir in dirs:
+                    dirname = os.path.join(root, dir)
+                    actual_uid = os.stat(dirname).st_uid
+                    actual_gid = os.stat(dirname).st_gid
+                    os.chown(dirname, int(uid), int(gid))
+                    logging.info(message_info(152, dirname, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
 
-            for file in files:
-                filename = os.path.join(root, file)
-                actual_uid = os.stat(filename).st_uid
-                actual_gid = os.stat(filename).st_gid
-                os.chown(filename, int(uid), int(gid))
-                logging.info(message_info(152, filename, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                for file in files:
+                    filename = os.path.join(root, file)
+                    actual_uid = os.stat(filename).st_uid
+                    actual_gid = os.stat(filename).st_gid
+                    os.chown(filename, int(uid), int(gid))
+                    logging.info(message_info(152, filename, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
 
 
 def change_file_permissions(config):
