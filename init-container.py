@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-11-25'
+__updated__ = '2019-11-26'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -1233,7 +1233,7 @@ def database_initialization(config):
     database_url = config.get('g2_database_url')
     enable_db2 = config.get('enable_db2')
     enable_mssql = config.get('enable_mssql')
-    enable_mysql = config.get('enable_mssql')
+    enable_mysql = config.get('enable_mysql')
 
     parsed_database_url = parse_database_url(database_url)
     scheme = parsed_database_url.get('scheme')
