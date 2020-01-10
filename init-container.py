@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2019-12-11'
+__updated__ = '2020-01-10'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -903,6 +903,18 @@ def change_file_permissions(config):
             "gid": gid,
         },
         {
+            "filename": "{0}/sqlite/G2C_LIBFEAT.db".format(var_dir),
+            "permissions": 0o750,
+            "uid": uid,
+            "gid": gid,
+        },
+        {
+            "filename": "{0}/sqlite/G2C_RES.db".format(var_dir),
+            "permissions": 0o750,
+            "uid": uid,
+            "gid": gid,
+        },
+        {
             "filename": "{0}/sqlite/G2C.db.template".format(var_dir),
             "permissions": 0o440,
             "uid": uid,
@@ -1054,6 +1066,12 @@ def copy_files(config):
         }, {
             "source_file": "{0}/resources/templates/G2C.db.template".format(g2_dir),
             "target_file": "{0}/sqlite/G2C.db".format(var_dir),
+        }, {
+            "source_file": "{0}/resources/templates/G2C.db.template".format(g2_dir),
+            "target_file": "{0}/sqlite/G2C_LIBFEAT.db".format(var_dir),
+        }, {
+            "source_file": "{0}/resources/templates/G2C.db.template".format(g2_dir),
+            "target_file": "{0}/sqlite/G2C_RES.db".format(var_dir),
         }
     ]
 
