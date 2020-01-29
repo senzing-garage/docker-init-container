@@ -1,11 +1,11 @@
-ARG BASE_IMAGE=senzing/senzing-base:1.3.0
+ARG BASE_IMAGE=senzing/senzing-base:1.4.0
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2019-11-13
+ENV REFRESHED_AT=2020-01-29
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.4.0"
+      Version="1.5.0"
 
 HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
