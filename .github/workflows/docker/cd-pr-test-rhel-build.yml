@@ -1,0 +1,11 @@
+
+name: Pull Request Test Init Container Build on RHEL
+
+on:
+  pull_request:
+    branches:
+      - issue-41.mahchiahui.1
+
+jobs:
+  buildInitContainer:
+    runs-on: ubuntu-latest
