@@ -1,0 +1,1 @@
+FROM senzing/base-image-centos:1.0.0
