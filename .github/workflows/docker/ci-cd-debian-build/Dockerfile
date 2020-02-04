@@ -1,0 +1,1 @@
+FROM senzing/base-image-debian:1.0.0
