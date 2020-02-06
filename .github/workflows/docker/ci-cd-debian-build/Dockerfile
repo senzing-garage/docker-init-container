@@ -30,10 +30,11 @@ RUN git clone https://github.com/${GITHUB_OWNER}/docker-init-container.git
 
 # Build Senzing Init Container
 WORKDIR /docker-init-container
+SHELL ["/bin/bash", "-c"]
 RUN git checkout ${GITHUB_HEAD_REF}; \
     if [[ "${GITHUB_HEAD_REF}" != "master" && ${GITHUB_EVENT_NAME} == "pull_request" ]]; then \
-        git merge issue-41.mahchiahui.1; \
+        git merge master; \
     fi
 
 WORKDIR /docker-init-container
-RUN initialize
+RUN init-container.py initialize
