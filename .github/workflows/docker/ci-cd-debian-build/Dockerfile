@@ -37,4 +37,4 @@ RUN git checkout ${GITHUB_HEAD_REF}; \
     fi
 
 WORKDIR /docker-init-container
-RUN init-container.py initialize
+RUN ./init-container.py initialize
