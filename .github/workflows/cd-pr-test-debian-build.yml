@@ -8,33 +8,34 @@ on:
 jobs:
   buildInitContainer:
     runs-on: ubuntu-latest
-    - uses: actions/checkout@v1
-    - name: Print Environment Variables
-      run: printenv
-    - name: Build docker-init-container
-      id: build_init_container
-      run: |
-        docker build --tag senzing-docker-init-container:${GITHUB_HEAD_REF:-${GITHUB_REF##*/}} \
-          --build-arg "GITHUB_HEAD_REF=${GITHUB_HEAD_REF:-${GITHUB_REF##*/}}" \
-          --build-arg "GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}" \
-          --build-arg "SENZING_REPO_URL=https://senzing-production-apt.s3.amazonaws.com/senzingrepo_1.0.0-1_amd64.deb" \
-          .github/workflows/docker/ci-cd-debian-build
-    - name: Slack Notification
-      id: slack_notification
-      uses: Senzing/git-action-slack-notification@1.0.0
-      if: failure()
-      env:
-        SLACK_CHANNEL: ci-cd-dev
-        SLACK_COLOR: '#3278BD'
-        SLACK_TITLE: 'Failed to build Debian version on GitHub Commit SHA ${{ github.sha }}'
-        SLACK_MESSAGE: |
-          Failed to build on GitHub Commit SHA ${{ github.sha }}
-          Git Issue URL: ${{ steps.create_git_issue.outputs.git_issue_url }}
-        SLACK_USERNAME: docker-init-container
-        SLACK_WEBHOOK: ${{ secrets.SLACK_NOTIFICATION }}
-        GITHUB_ACTOR: ${{ github.actor }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_REF: ${{ github.ref }}
-        GITHUB_ACTION: ${{ github.action }}
-        GITHUB_EVENT_NAME: ${{ github.event_name }}
-        GITHUB_WORKFLOW: ${{ github.workflow }}
+    steps:
+      - uses: actions/checkout@v1
+      - name: Print Environment Variables
+        run: printenv
+      - name: Build docker-init-container
+        id: build_init_container
+        run: |
+          docker build --tag senzing-docker-init-container:${GITHUB_HEAD_REF:-${GITHUB_REF##*/}} \
+            --build-arg "GITHUB_HEAD_REF=${GITHUB_HEAD_REF:-${GITHUB_REF##*/}}" \
+            --build-arg "GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}" \
+            --build-arg "SENZING_REPO_URL=https://senzing-production-apt.s3.amazonaws.com/senzingrepo_1.0.0-1_amd64.deb" \
+            .github/workflows/docker/ci-cd-debian-build
+      - name: Slack Notification
+        id: slack_notification
+        uses: Senzing/git-action-slack-notification@1.0.0
+        if: failure()
+        env:
+          SLACK_CHANNEL: ci-cd-dev
+          SLACK_COLOR: '#3278BD'
+          SLACK_TITLE: 'Failed to build Debian version on GitHub Commit SHA ${{ github.sha }}'
+          SLACK_MESSAGE: |
+            Failed to build on GitHub Commit SHA ${{ github.sha }}
+            Git Issue URL: ${{ steps.create_git_issue.outputs.git_issue_url }}
+          SLACK_USERNAME: docker-init-container
+          SLACK_WEBHOOK: ${{ secrets.SLACK_NOTIFICATION }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_ACTION: ${{ github.action }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
