@@ -32,7 +32,8 @@ RUN git clone https://github.com/${GITHUB_OWNER}/docker-init-container.git
 WORKDIR /docker-init-container
 RUN git checkout ${GITHUB_HEAD_REF}; \
     if [[ "${GITHUB_HEAD_REF}" != "master" && ${GITHUB_EVENT_NAME} == "pull_request" ]]; then \
-        git merge master; \
+        git merge issue-41.mahchiahui.1; \
     fi
 
+WORKDIR /docker-init-container
 RUN initialize
