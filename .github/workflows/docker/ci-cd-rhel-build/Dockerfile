@@ -16,6 +16,9 @@ ENV SENZING_ACCEPT_EULA=I_ACCEPT_THE_SENZING_EULA
 RUN yum install -y \
         ${SENZING_REPO_URL}
 
+# Install python 3
+RUN yum install rh-python36
+
 # Set environment variables.
 ENV SENZING_ROOT=/opt/senzing
 ENV SENZING_G2_DIR=${SENZING_ROOT}/g2
