@@ -17,7 +17,7 @@ RUN yum install -y \
         ${SENZING_REPO_URL}
 
 # Install python 3
-RUN yum install rh-python36
+RUN yum install -y python36
 
 # Set environment variables.
 ENV SENZING_ROOT=/opt/senzing
