@@ -28,7 +28,7 @@ ENV SENZING_VAR_DIR=/var/opt/senzing
 WORKDIR /
 RUN git clone https://github.com/${GITHUB_OWNER}/docker-init-container.git
 
-# Build Senzing Init Container
+# Merge branch if its a pull request
 WORKDIR /docker-init-container
 SHELL ["/bin/bash", "-c"]
 RUN git checkout ${GITHUB_HEAD_REF}; \
