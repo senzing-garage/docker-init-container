@@ -23,7 +23,7 @@ jobs:
       - name: Build Senzing Init Container
         id: build_init_container
         run: |
-          docker build . >> build_failure.log 2>&1
+          docker build /this_should_not_work/ >> build_failure.log 2>&1
           cat build_failure.log >> output.log 2>&1
       - name: Create Git Issue on Build Failure
         uses: Senzing/git-action-jira-issue-creation@1.0.0
