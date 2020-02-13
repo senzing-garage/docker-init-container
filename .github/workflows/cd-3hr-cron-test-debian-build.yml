@@ -3,7 +3,7 @@ name: Cron Schedule 3 hr Test init container Build on Debian
 on:
   pull_request:
     branches:
-      - issue-41.mahchiahui.1
+      - master
 
 jobs:
   buildInitContainer:
@@ -24,7 +24,7 @@ jobs:
       - name: Build Senzing Init Container
         id: build_init_container
         run: |
-          docker build /this_should_not_work/ >> build_failure.log 2>&1
+          docker build . >> build_failure.log 2>&1
           cat build_failure.log >> output.log 2>&1
       - name: Create Git Issue on Build Failure
         uses: Senzing/git-action-jira-issue-creation@1.0.0
@@ -40,3 +40,10 @@ jobs:
           JIRA_ISSUE_DESCRIPTION: |
             Please review git actions log and trouble shoot the build failure.
             The commit SHA is: _${{ github.sha }}_.
+      - name: Persisting log
+        id: persisting_log
+        if: failure()
+        uses: actions/upload-artifact@v1
+        with:
+          name: workflow_log
+          path: output.log
