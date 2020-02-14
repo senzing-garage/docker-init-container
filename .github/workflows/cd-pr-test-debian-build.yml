@@ -18,6 +18,7 @@ jobs:
           ls -la >> output.log 2>&1
           git branch >> output.log 2>&1
           git checkout ${GITHUB_HEAD_REF}; >> output.log 2>&1
+          git branch >> output.log 2>&1
           if [[ "${GITHUB_HEAD_REF}" != "master" && "${GITHUB_EVENT_NAME}" == "push" ]]; \
           then \
             git merge master; \
