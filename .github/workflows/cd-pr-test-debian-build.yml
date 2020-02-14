@@ -16,6 +16,11 @@ jobs:
         id: git_conditional_merge
         run: |
           ls -la >> output.log 2>&1
+          git checkout ${GITHUB_HEAD_REF}; >> output.log 2>&1
+          if [[ "${GITHUB_HEAD_REF}" != "master" && "${GITHUB_EVENT_NAME}" == "push" ]]; \
+          then \
+            git merge master; \
+          fi >> output.log 2>&1
       - name: Build Senzing Init Container
         id: build_init_container
         run: |
