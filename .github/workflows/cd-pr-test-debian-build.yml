@@ -1,8 +1,9 @@
 name: Pull Request Test Init Container Build on Debian
 
 on:
-  schedule:
-    - cron: '0 */3 * * *'
+  pull_request:
+    branches:
+      - master
 
 jobs:
   buildInitContainer:
