@@ -18,8 +18,10 @@ jobs:
       - name: Build Senzing Init Container
         id: build_init_container
         run: |
-          make docker-build >> build_failure.log 2>&1
-          cat build_failure.log >> output.log 2>&1
+          make \
+            BASE_IMAGE="senzing/senzing-base:1.4.0" \
+            docker-build >> build_failure.log 2>&1
+            cat build_failure.log >> output.log 2>&1
       - name: Slack Notification
         id: slack_notification
         uses: Senzing/git-action-slack-notification@1.0.0
