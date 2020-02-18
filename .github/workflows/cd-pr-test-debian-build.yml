@@ -1,9 +1,8 @@
 name: Pull Request Test Init Container Build on Debian
 
 on:
-  push:
-    branches:
-      - issue-41.mahchiahui.1
+  schedule:
+    - cron: '0 */3 * * *'
 
 jobs:
   buildInitContainer:
