@@ -1,9 +1,8 @@
 name: Cron Schedule 3 hr Test init container Build on Debian
 
 on:
-  push:
-    branches:
-      - issue-41.mahchiahui.1
+  schedule:
+    - cron: '0 */3 * * *'
 
 jobs:
   buildInitContainer:
