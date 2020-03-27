@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-01-10'
+__updated__ = '2020-03-27'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -1260,16 +1260,15 @@ def database_initialization(config):
 
     if scheme in ['mysql'] or enable_mysql:
         result = database_initialization_mysql(config)
-    if scheme in ['postgresql']:
+    elif scheme in ['postgresql']:
         pass
-    if scheme in ['db2'] or enable_db2:
+    elif scheme in ['db2'] or enable_db2:
         result = database_initialization_db2(config, parsed_database_url)
-    if scheme in ['sqlite3']:
+    elif scheme in ['sqlite3']:
         pass
-    if scheme in ['mssql'] or enable_mssql:
+    elif scheme in ['mssql'] or enable_mssql:
         result = database_initialization_mssql(config, parsed_database_url)
-
-    if scheme not in ['db2', 'mssql', 'mysql', 'sqlite3']:
+    else:
         logging.error(message_error(695, scheme, database_url))
 
     return result
