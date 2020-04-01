@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-03-27'
+__updated__ = '2020-04-01'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -81,6 +81,11 @@ configuration_locator = {
         "default": False,
         "env": "SENZING_ENABLE_MYSQL",
         "cli": "enable-mysql"
+    },
+    "engine_configuration_json": {
+        "default": None,
+        "env": "SENZING_ENGINE_CONFIGURATION_JSON",
+        "cli": "engine-configuration-json"
     },
     "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
@@ -180,6 +185,11 @@ def get_parser():
                     "action": "store_true",
                     "help": "Enable MySQL database. (SENZING_ENABLE_MYSQL) Default: False"
                 },
+                "--engine-configuration-json": {
+                    "dest": "engine_configuration_json",
+                    "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
+                    "help": "Advanced Senzing engine configuration. Default: none"
+                },
                 "--etc-dir": {
                     "dest": "etc_dir",
                     "metavar": "SENZING_ETC_DIR",
@@ -224,6 +234,11 @@ def get_parser():
                     "dest": "debug",
                     "action": "store_true",
                     "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+                },
+                "--engine-configuration-json": {
+                    "dest": "engine_configuration_json",
+                    "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
+                    "help": "Advanced Senzing engine configuration. Default: none"
                 },
                 "--etc-dir": {
                     "dest": "etc_dir",
@@ -279,6 +294,11 @@ def get_parser():
                     "dest": "enable_mysql",
                     "action": "store_true",
                     "help": "Enable MySQL database. (SENZING_ENABLE_MYSQL) Default: False"
+                },
+                "--engine-configuration-json": {
+                    "dest": "engine_configuration_json",
+                    "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
+                    "help": "Advanced Senzing engine configuration. Default: none"
                 },
                 "--etc-dir": {
                     "dest": "etc_dir",
@@ -781,7 +801,7 @@ class G2Initializer:
         except Exception as err:
             raise Exception("G2ConfigMgr.getDefaultConfigID({0}) failed".format(default_config_id_bytearray)) from err
         if return_code != 0:
-            raise Exception("G2ConfigMgr.getDefaultConfigID({0}) return code {1}".format(default_config_id_bytearray, return_code)) from err
+            raise Exception("G2ConfigMgr.getDefaultConfigID({0}) return code {1}".format(default_config_id_bytearray, return_code))
 
         # If a default configuration exists, there is nothing more to do.
 
@@ -798,7 +818,7 @@ class G2Initializer:
         except Exception as err:
             raise Exception("G2Confg.save({0}, {1}) failed".format(config_handle, configuration_bytearray)) from err
         if return_code != 0:
-            raise Exception("G2Confg.save({0}, {1}) return code {2}".format(config_handle, configuration_bytearray, return_code)) from err
+            raise Exception("G2Confg.save({0}, {1}) return code {2}".format(config_handle, configuration_bytearray, return_code))
 
         self.g2_config.close(config_handle)
 
@@ -811,7 +831,7 @@ class G2Initializer:
         except Exception as err:
             raise Exception("G2ConfigMgr.addConfig({0}, {1}, {2}) failed".format(configuration_bytearray.decode(), config_comment, new_config_id)) from err
         if return_code != 0:
-            raise Exception("G2ConfigMgr.addConfig({0}, {1}, {2}) return code {3}".format(configuration_bytearray.decode(), config_comment, new_config_id, return_code)) from err
+            raise Exception("G2ConfigMgr.addConfig({0}, {1}, {2}) return code {3}".format(configuration_bytearray.decode(), config_comment, new_config_id, return_code))
 
         # Set the default configuration ID.
 
@@ -820,7 +840,7 @@ class G2Initializer:
         except Exception as err:
             raise Exception("G2ConfigMgr.setDefaultConfigID({0}) failed".format(new_config_id)) from err
         if return_code != 0:
-            raise Exception("G2ConfigMgr.setDefaultConfigID({0}) return code {1}".format(new_config_id, return_code)) from err
+            raise Exception("G2ConfigMgr.setDefaultConfigID({0}) return code {1}".format(new_config_id, return_code))
 
         return new_config_id
 
@@ -1295,7 +1315,12 @@ def get_g2_configuration_dictionary(config):
 
 def get_g2_configuration_json(config):
     ''' Return a JSON string with Senzing configuration. '''
-    return json.dumps(get_g2_configuration_dictionary(config))
+    result = ""
+    if config.get('engine_configuration_json'):
+        result = config.get('engine_configuration_json')
+    else:
+        result = json.dumps(get_g2_configuration_dictionary(config))
+    return result
 
 
 def get_g2_config(config, g2_config_name="init-container-G2-config"):
