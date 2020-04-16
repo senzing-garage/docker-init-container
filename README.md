@@ -20,28 +20,28 @@ The `senzing/init-container` performs Senzing initializations.
 ### Contents
 
 1. [Expectations](#expectations)
-    1. [Space](#space)
-    1. [Time](#time)
-    1. [Background knowledge](#background-knowledge)
-1. [Demonstrate using Command Line](#demonstrate-using-command-line)
-    1. [Prerequisite software](#prerequisite-software)
-    1. [Clone repository](#clone-repository)
-    1. [Install](#install)
-    1. [Run commands](#run-commands)
+1. [Demonstrate using Command Line Interface](#demonstrate-using-command-line-interface)
+    1. [Prerequisite software for CLI](#prerequisite-software-for-cli)
+    1. [Download](#download)
+    1. [Environment variables for CLI](#environment-variables-for-cli)
+    1. [Run command](#run-command)
 1. [Demonstrate using Docker](#demonstrate-using-docker)
-    1. [Initialize Senzing](#initialize-senzing)
-    1. [Configuration](#configuration)
-    1. [Volumes](#volumes)
+    1. [Prerequisite software for Docker](#prerequisite-software-for-docker)
+    1. [Install Senzing for Docker](#install-senzing-for-docker)
+    1. [Docker volumes](#docker-volumes)
     1. [Docker network](#docker-network)
     1. [Docker user](#docker-user)
     1. [External database](#external-database)
     1. [Database support](#database-support)
-    1. [Run docker container](#run-docker-container)
+    1. [Run Docker container](#run-docker-container)
 1. [Develop](#develop)
     1. [Prerequisite software for development](#prerequisite-software-for-development)
-    1. [Clone repository for development](#clone-repository-for-development)
-    1. [Build docker image for development](#build-docker-image-for-development)
+    1. [Clone repository](#clone-repository)
+    1. [Build Docker image](#build-docker-image)
 1. [Examples](#examples)
+1. [Advanced](#advanced)
+    1. [Configuration](#configuration)
+    1. [Using Docker with system install](#using-docker-with-system-install)
 1. [Errors](#errors)
 1. [References](#references)
 
@@ -55,90 +55,140 @@ The `senzing/init-container` performs Senzing initializations.
 
 ## Expectations
 
-### Space
+- **Space:** This repository and demonstration require 6 GB free disk space.
+- **Time:** Budget 40 minutes to get the demonstration up-and-running, depending on CPU and network speeds.
+- **Background knowledge:** This repository assumes a working knowledge of:
+  - [Docker](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/docker.md)
 
-This repository and demonstration require 6 GB free disk space.
+## Demonstrate using Command Line Interface
 
-### Time
-
-Budget 40 minutes to get the demonstration up-and-running, depending on CPU and network speeds.
-
-### Background knowledge
-
-This repository assumes a working knowledge of:
-
-1. [Docker](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/docker.md)
-
-## Demonstrate using Command Line
-
-### Prerequisite software
+### Prerequisite software for CLI
 
 The following software programs need to be installed:
 
-1. [git](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-git.md)
-1. [senzingdata](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-data.md)
 1. [senzingapi](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-api.md)
+1. System dependencies
+    1. `apt` based installation for Debian, Ubuntu and
+       [others](https://en.wikipedia.org/wiki/List_of_Linux_distributions#Debian-based)
+        1. [apt-packages.txt](src/apt-packages.txt)
+    1. `yum` based installation for Red Hat, CentOS, openSuse and
+       [others](https://en.wikipedia.org/wiki/List_of_Linux_distributions#RPM-based).
+        1. [yum-packages.txt](src/yum-packages.txt)
+1. Python dependencies
+    1. [requirements.txt](requirements.txt)
+        1. [Installation hints](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-python-dependencies.md)
 
-### Clone repository
+### Download
 
-1. Set these environment variable values:
+1. Get a local copy of
+   [template-python.py](template-python.py).
+   Example:
+
+    1. :pencil2: Specify where to download file.
+       Example:
+
+        ```console
+        export SENZING_DOWNLOAD_FILE=~/template-python.py
+        ```
+
+    1. Download file.
+       Example:
+
+        ```console
+        curl -X GET \
+          --output ${SENZING_DOWNLOAD_FILE} \
+          https://raw.githubusercontent.com/Senzing/template-python/master/template-python.py
+        ```
+
+    1. Make file executable.
+       Example:
+
+        ```console
+        chmod +x ${SENZING_DOWNLOAD_FILE}
+        ```
+
+1. :thinking: **Alternative:** The entire git repository can be downloaded by following instructions at
+   [Clone repository](#clone-repository)
+
+### Environment variables for CLI
+
+1. :pencil2: Identify the Senzing `g2` directory.
+   Example:
 
     ```console
-    export GIT_ACCOUNT=senzing
-    export GIT_REPOSITORY=docker-init-container
-    export GIT_ACCOUNT_DIR=~/${GIT_ACCOUNT}.git
-    export GIT_REPOSITORY_DIR="${GIT_ACCOUNT_DIR}/${GIT_REPOSITORY}"
+    export SENZING_G2_DIR=/opt/senzing/g2
     ```
 
-1. Follow steps in [clone-repository](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/clone-repository.md) to install the Git repository.
+    1. Here's a simple test to see if `SENZING_G2_DIR` is correct.
+       The following command should return file contents.
+       Example:
 
-### Install
+        ```console
+        cat ${SENZING_G2_DIR}/g2BuildVersion.json
+        ```
 
-1. Install prerequisites:
-    1. [Debian-based installation](docs/debian-based-installation.md) - For Ubuntu and [others](https://en.wikipedia.org/wiki/List_of_Linux_distributions#Debian-based)
-    1. [RPM-based installation](docs/rpm-based-installation.md) - For Red Hat, CentOS, openSuse and [others](https://en.wikipedia.org/wiki/List_of_Linux_distributions#RPM-based).
+1. Set common environment variables
+   Example:
 
-### Run commands
+    ```console
+    export PYTHONPATH=${SENZING_G2_DIR}/python
+    ```
+
+1. :thinking: Set operating system specific environment variables.
+   Choose one of the options.
+    1. **Option #1:** For Debian, Ubuntu, and [others](https://en.wikipedia.org/wiki/List_of_Linux_distributions#Debian-based).
+       Example:
+
+        ```console
+        export LD_LIBRARY_PATH=${SENZING_G2_DIR}/lib:${SENZING_G2_DIR}/lib/debian:$LD_LIBRARY_PATH
+        ```
+
+    1. **Option #2** For Red Hat, CentOS, openSuse and [others](https://en.wikipedia.org/wiki/List_of_Linux_distributions#RPM-based).
+       Example:
+
+        ```console
+        export LD_LIBRARY_PATH=${SENZING_G2_DIR}/lib:$LD_LIBRARY_PATH
+        ```
+
+### Run command
+
+1. Run the command.
+   Example:
+
+   ```console
+   ${SENZING_DOWNLOAD_FILE} --help
+   ```
 
 ## Demonstrate using Docker
 
-### Initialize Senzing
+### Prerequisite software for Docker
 
-1. If Senzing has not been initialized, visit
-   "[How to initialize Senzing with Docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/initialize-senzing-with-docker.md)".
+The following software programs need to be installed:
 
-### Configuration
+1. [docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-docker.md)
 
-Configuration values specified by environment variable or command line parameter.
+### Install Senzing for Docker
 
-- **[SENZING_DATA_VERSION_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_data_version_dir)**
-- **[SENZING_DATABASE_URL](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_database_url)**
-- **[SENZING_DEBUG](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_debug)**
-- **[SENZING_ETC_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_etc_dir)**
-- **[SENZING_G2_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_g2_dir)**
-- **[SENZING_NETWORK](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_network)**
-- **[SENZING_RUNAS_USER](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_runas_user)**
-- **[SENZING_VAR_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_var_dir)**
+1. If Senzing has not been installed, visit
+   "[How to install Senzing using Docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-using-docker.md)".
+    1. If using Docker with a previous "system install" of Senzing,
+       see [Using Docker with system install](#using-docker-with-system-install).
 
-### Volumes
 
-1. :pencil2: Specify the directory containing the Senzing installation.
-   Use the same `SENZING_VOLUME` value used when performing
-   "[How to initialize Senzing with Docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/initialize-senzing-with-docker.md)".
+### Docker volumes
+
+Senzing Docker images follow the [Linux File Hierarchy Standard](https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.pdf).
+Inside the Docker container, Senzing artifacts will be located in `/opt/senzing`, `/etc/opt/senzing`, and `/var/opt/senzing`.
+
+1. :pencil2: Specify the directory containing the Senzing installation on the host system
+   (i.e. *outside* the Docker container).
+   Use the same `SENZING_VOLUME` value used when
+   [installing Senzing for Docker](#install-senzing-for-docker).
    Example:
 
     ```console
     export SENZING_VOLUME=/opt/my-senzing
     ```
-
-    1. Here's a simple test to see if `SENZING_VOLUME` is correct.
-       The following commands should return file contents.
-       Example:
-
-        ```console
-        cat ${SENZING_VOLUME}/g2/g2BuildVersion.json
-        cat ${SENZING_VOLUME}/data/1.0.0/libpostal/data_version
-        ```
 
     1. :warning:
        **macOS** - [File sharing](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/share-directories-with-docker.md#macos)
@@ -156,19 +206,32 @@ Configuration values specified by environment variable or command line parameter
     export SENZING_G2_DIR=${SENZING_VOLUME}/g2
     export SENZING_VAR_DIR=${SENZING_VOLUME}/var
     ```
-    
+
+    *Note:* If using a "system install",
+    see [Using Docker with system install](#using-docker-with-system-install)
+    for how to set environment variables.
+
+1. Here's a simple test to see if `SENZING_G2_DIR` and `SENZING_DATA_VERSION_DIR` are correct.
+   The following commands should return file contents.
+   Example:
+
+    ```console
+    cat ${SENZING_G2_DIR}/g2BuildVersion.json
+    cat ${SENZING_DATA_VERSION_DIR}/libpostal/data_version
+    ```
+
 ### Docker network
 
-:thinking: **Optional:**  Use if docker container is part of a docker network.
+:thinking: **Optional:**  Use if Docker container is part of a Docker network.
 
-1. List docker networks.
+1. List Docker networks.
    Example:
 
     ```console
     sudo docker network ls
     ```
 
-1. :pencil2: Specify docker network.
+1. :pencil2: Specify Docker network.
    Choose value from NAME column of `docker network ls`.
    Example:
 
@@ -185,23 +248,21 @@ Configuration values specified by environment variable or command line parameter
 
 ### Docker user
 
-:thinking: **Optional:**  The docker container runs as "USER 1001".
+:thinking: **Optional:**  The Docker container runs as "USER 1001".
 Use if a different userid (UID) is required.
 
-1. :pencil2: Manually identify user.
-   User "0" is root.
-   Example:
+1. :pencil2: Identify user.
+    1. **Example #1:** Use specific UID. User "0" is `root`.
 
-    ```console
-    export SENZING_RUNAS_USER="0"
-    ```
+        ```console
+        export SENZING_RUNAS_USER="0"
+        ```
 
-   Another option, use current user.
-   Example:
+    1. **Example #2:** Use current user.
 
-    ```console
-    export SENZING_RUNAS_USER=$(id -u)
-    ```
+        ```console
+        export SENZING_RUNAS_USER=$(id -u)
+        ```
 
 1. Construct parameter for `docker run`.
    Example:
@@ -243,7 +304,7 @@ If not specified, the internal SQLite database will be used.
 
 ### Database support
 
-:thinking: **Optional:**  Some database need additional support.
+:thinking: **Optional:**  Some databases need additional support.
 For other databases, these steps may be skipped.
 
 1. **Db2:** See
@@ -253,9 +314,14 @@ For other databases, these steps may be skipped.
    [Support MS SQL](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/support-mssql.md)
    instructions to set `SENZING_OPT_MICROSOFT_DIR_PARAMETER`.
 
-### Run docker container
+### Run Docker container
 
-1. Run docker container.
+Although the `Docker run` command looks complex,
+it accounts for all of the optional variations described above.
+Unset environment variables have no effect on the
+`docker run` command and may be removed or remain.
+
+1. Run Docker container.
    Example:
 
     ```console
@@ -265,15 +331,17 @@ For other databases, these steps may be skipped.
       --volume ${SENZING_ETC_DIR}:/etc/opt/senzing \
       --volume ${SENZING_G2_DIR}:/opt/senzing/g2 \
       --volume ${SENZING_VAR_DIR}:/var/opt/senzing \
-      ${SENZING_RUNAS_USER_PARAMETER} \
       ${SENZING_DATABASE_URL_PARAMETER} \
       ${SENZING_NETWORK_PARAMETER} \
       ${SENZING_OPT_IBM_DIR_PARAMETER} \
       ${SENZING_OPT_MICROSOFT_DIR_PARAMETER} \
+      ${SENZING_RUNAS_USER_PARAMETER} \
       senzing/init-container
     ```
 
 ## Develop
+
+The following instructions are used when modifying and building the Docker image.
 
 ### Prerequisite software for development
 
@@ -283,7 +351,7 @@ The following software programs need to be installed:
 1. [make](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-make.md)
 1. [docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-docker.md)
 
-### Clone repository for development
+### Clone repository
 
 For more information on environment variables,
 see [Environment Variables](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md).
@@ -299,12 +367,14 @@ see [Environment Variables](https://github.com/Senzing/knowledge-base/blob/maste
 
 1. Follow steps in [clone-repository](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/clone-repository.md) to install the Git repository.
 
-### Build docker image for development
+### Build Docker image
 
 1. **Option #1:** Using `docker` command and GitHub.
 
     ```console
-    sudo docker build --tag senzing/init-container https://github.com/senzing/docker-init-container.git
+    sudo docker build \
+      --tag senzing/init-container \
+      https://github.com/senzing/docker-init-container.git
     ```
 
 1. **Option #2:** Using `docker` command and local repository.
@@ -321,9 +391,30 @@ see [Environment Variables](https://github.com/Senzing/knowledge-base/blob/maste
     sudo make docker-build
     ```
 
-    Note: `sudo make docker-build-development-cache` can be used to create cached docker layers.
+    Note: `sudo make docker-build-development-cache` can be used to create cached Docker layers.
 
 ## Examples
+
+## Advanced
+
+### Configuration
+
+Configuration values specified by environment variable or command line parameter.
+
+- **[SENZING_DATA_VERSION_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_data_version_dir)**
+- **[SENZING_DATABASE_URL](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_database_url)**
+- **[SENZING_DEBUG](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_debug)**
+- **[SENZING_ETC_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_etc_dir)**
+- **[SENZING_G2_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_g2_dir)**
+- **[SENZING_NETWORK](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_network)**
+- **[SENZING_RUNAS_USER](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_runas_user)**
+- **[SENZING_VAR_DIR](https://github.com/Senzing/knowledge-base/blob/master/lists/environment-variables.md#senzing_var_dir)**
+
+### Using Docker with system install
+
+It is possible to use Docker with a Senzing "system install" on a host system.
+If using the Senzing system installation on the host system is desired,
+see how to [use docker with system install](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/use-docker-with-system-install.md).
 
 ## Errors
 
