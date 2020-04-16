@@ -97,7 +97,7 @@ The following software programs need to be installed:
         ```console
         curl -X GET \
           --output ${SENZING_DOWNLOAD_FILE} \
-          https://raw.githubusercontent.com/Senzing/init-container/master/init-container.py
+          https://raw.githubusercontent.com/Senzing/docker-init-container/master/init-container.py
         ```
 
     1. Make file executable.
