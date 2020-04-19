@@ -172,7 +172,9 @@ The following software programs need to be installed:
 1. If Senzing has not been installed, visit
    "[How to install Senzing using Docker](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-using-docker.md)".
     1. If using Docker with a previous "system install" of Senzing,
-       see [Using Docker with system install](#using-docker-with-system-install).
+       see [Use Docker with system install](#using-docker-with-system-install).
+       see [use docker with system install](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/use-docker-with-system-install.md).
+
 
 
 ### Docker volumes
