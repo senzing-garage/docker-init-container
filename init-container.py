@@ -389,7 +389,7 @@ message_dictionary = {
     "157": "{0} - Creating file",
     "158": "{0} - Creating symlink to {1}",
     "159": "{0} - Downloading from {1}",
-    "160": "{0} - Copied and modified from {1}",
+    "160": "{0} - Copy and modify from {1}",
     "161": "{0} - Backup of current {1}",
     "162": "{0} - Was not created because there is no {1}",
     "170": "Created new default config in SYS_CFG having ID {0}",
@@ -1175,11 +1175,11 @@ def database_initialization_db2(config, parsed_database_url):
 
     # Create new file from input_filename template.
 
+    logging.info(message_info(160, output_filename, input_filename))
     with open(input_filename, 'r') as in_file:
         with open(output_filename, 'w') as out_file:
             for line in in_file:
                 out_file.write(line.format(**parsed_database_url))
-    logging.info(message_info(160, output_filename, input_filename))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1209,11 +1209,11 @@ def database_initialization_mssql(config, parsed_database_url):
 
     # Create new file from input_filename template.
 
+    logging.info(message_info(160, output_filename, input_filename))
     with open(input_filename, 'r') as in_file:
         with open(output_filename, 'w') as out_file:
             for line in in_file:
                 out_file.write(line.format(**parsed_database_url))
-    logging.info(message_info(160, output_filename, input_filename))
 
     # Remove backup file if it is the same as the new file.
 
