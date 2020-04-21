@@ -435,6 +435,41 @@ The database is not initialized.
       --var-dir  ${SENZING_VOLUME}/var
     ```
 
+#### Init PostgreSQL
+
+In this example, a PostgreSQL database is initialized.
+
+1. :pencil2: Specify database.
+   Example:
+
+    ```console
+    export DATABASE_PROTOCOL=postgresql
+    export DATABASE_USERNAME=postgres
+    export DATABASE_PASSWORD=postgres
+    export DATABASE_HOST=senzing-postgresql
+    export DATABASE_PORT=5432
+    export DATABASE_DATABASE=G2
+    ```
+
+1. Construct Database URL.
+   Example:
+
+    ```console
+    export SENZING_DATABASE_URL="${DATABASE_PROTOCOL}://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DATABASE}"
+    ```
+
+1. Run command.
+   Example:
+
+    ```console
+    init-container.py initialize-database \
+      --database-url ${SENZING_DATABASE_URL} \
+      --etc-dir  ${SENZING_VOLUME}/etc \
+      --g2-dir   ${SENZING_VOLUME}/g2 \
+      --data-dir ${SENZING_VOLUME}/data \
+      --var-dir  ${SENZING_VOLUME}/var
+    ```
+
 #### Init a Senzing volume and PostgreSQL
 
 1. :pencil2: Specify `SENZING_VOLUME`.

@@ -391,7 +391,6 @@ message_dictionary = {
     "159": "{0} - Downloading from {1}",
     "160": "{0} - Copy and modify from {1}",
     "161": "{0} - Backup of current {1}",
-    "162": "{0} - Was not created because there is no {1}",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
@@ -428,6 +427,7 @@ message_dictionary = {
     "899": "{0}",
     "900": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}D",
     "901": "{0} will not be modified",
+    "902": "{0} - Was not created because there is no {1}",
     "999": "{0}",
 }
 
@@ -867,23 +867,27 @@ def change_directory_ownership(config):
         if os.path.isdir(directory):
             actual_uid = os.stat(directory).st_uid
             actual_gid = os.stat(directory).st_gid
-            logging.info(message_info(152, directory, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
-            os.chown(directory, int(uid), int(gid))
+
+            if (actual_uid, actual_gid) != (uid, gid):
+                logging.info(message_info(152, directory, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                os.chown(directory, int(uid), int(gid))
 
             for root, dirs, files in os.walk(directory):
                 for dir in dirs:
                     dirname = os.path.join(root, dir)
                     actual_uid = os.stat(dirname).st_uid
                     actual_gid = os.stat(dirname).st_gid
-                    logging.info(message_info(152, dirname, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
-                    os.chown(dirname, int(uid), int(gid))
+                    if (actual_uid, actual_gid) != (uid, gid):
+                        logging.info(message_info(152, dirname, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                        os.chown(dirname, int(uid), int(gid))
 
                 for file in files:
                     filename = os.path.join(root, file)
                     actual_uid = os.stat(filename).st_uid
                     actual_gid = os.stat(filename).st_gid
-                    logging.info(message_info(152, filename, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
-                    os.chown(filename, int(uid), int(gid))
+                    if (actual_uid, actual_gid) != (uid, gid):
+                        logging.info(message_info(152, filename, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                        os.chown(filename, int(uid), int(gid))
 
 
 def change_file_permissions(config):
@@ -1125,7 +1129,7 @@ def copy_files(config):
         # Check if source file exists.
 
         if not os.path.exists(source_file):
-            logging.info(message_info(162, target_file, source_file))
+            logging.debug(message_debug(902, target_file, source_file))
             continue
 
         # If source file exists and the target doesn't exist, copy.
