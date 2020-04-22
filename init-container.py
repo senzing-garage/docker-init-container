@@ -141,7 +141,9 @@ configuration_locator = {
 # Enumerate keys in 'configuration_locator' that should not be printed to the log.
 
 keys_to_redact = [
-    ]
+    "g2_database_url",
+    "g2_database_url_raw",
+]
 
 # Global cached objects
 
@@ -799,11 +801,9 @@ class G2Initializer:
 
         default_config_id_bytearray = bytearray()
         try:
-            return_code = self.g2_configuration_manager.getDefaultConfigID(default_config_id_bytearray)
+            self.g2_configuration_manager.getDefaultConfigID(default_config_id_bytearray)
         except Exception as err:
             raise Exception("G2ConfigMgr.getDefaultConfigID({0}) failed".format(default_config_id_bytearray)) from err
-        if return_code != 0:
-            raise Exception("G2ConfigMgr.getDefaultConfigID({0}) return code {1}".format(default_config_id_bytearray, return_code))
 
         # If a default configuration exists, there is nothing more to do.
 
@@ -816,11 +816,9 @@ class G2Initializer:
         config_handle = self.g2_config.create()
         configuration_bytearray = bytearray()
         try:
-            return_code = self.g2_config.save(config_handle, configuration_bytearray)
+            self.g2_config.save(config_handle, configuration_bytearray)
         except Exception as err:
             raise Exception("G2Confg.save({0}, {1}) failed".format(config_handle, configuration_bytearray)) from err
-        if return_code != 0:
-            raise Exception("G2Confg.save({0}, {1}) return code {2}".format(config_handle, configuration_bytearray, return_code))
 
         self.g2_config.close(config_handle)
 
@@ -829,20 +827,16 @@ class G2Initializer:
         config_comment = "Initial configuration."
         new_config_id = bytearray()
         try:
-            return_code = self.g2_configuration_manager.addConfig(configuration_bytearray.decode(), config_comment, new_config_id)
+            self.g2_configuration_manager.addConfig(configuration_bytearray.decode(), config_comment, new_config_id)
         except Exception as err:
             raise Exception("G2ConfigMgr.addConfig({0}, {1}, {2}) failed".format(configuration_bytearray.decode(), config_comment, new_config_id)) from err
-        if return_code != 0:
-            raise Exception("G2ConfigMgr.addConfig({0}, {1}, {2}) return code {3}".format(configuration_bytearray.decode(), config_comment, new_config_id, return_code))
 
         # Set the default configuration ID.
 
         try:
-            return_code = self.g2_configuration_manager.setDefaultConfigID(new_config_id)
+            self.g2_configuration_manager.setDefaultConfigID(new_config_id)
         except Exception as err:
             raise Exception("G2ConfigMgr.setDefaultConfigID({0}) failed".format(new_config_id)) from err
-        if return_code != 0:
-            raise Exception("G2ConfigMgr.setDefaultConfigID({0}) return code {1}".format(new_config_id, return_code))
 
         return new_config_id
 
