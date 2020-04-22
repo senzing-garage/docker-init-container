@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-04-21'
+__updated__ = '2020-04-22'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -389,8 +389,9 @@ message_dictionary = {
     "157": "{0} - Creating file",
     "158": "{0} - Creating symlink to {1}",
     "159": "{0} - Downloading from {1}",
-    "160": "{0} - Copy and modify from {1}",
+    "160": "{0} - Copying {1} and modifying",
     "161": "{0} - Backup of current {1}",
+    "162": "{0} - Creating directory",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
@@ -412,6 +413,7 @@ message_dictionary = {
     "699": "{0}",
     "700": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
     "701": "Error '{0}' caused by {1} error '{2}'",
+    "702": "Could not create '{0}' directory. Error: {1}",
     "886": "G2Engine.addRecord() bad return code: {0}; JSON: {1}",
     "888": "G2Engine.addRecord() G2ModuleNotInitialized: {0}; JSON: {1}",
     "889": "G2Engine.addRecord() G2ModuleGenericException: {0}; JSON: {1}",
@@ -1193,6 +1195,20 @@ def database_initialization_db2(config, parsed_database_url):
         else:
             logging.info(message_info(161, backup_filename, output_filename))
 
+# The following method is just a docstring for use in creating a template file.
+
+
+def database_initialization_mssql_odbc_ini_mssql_template():
+    """
+[{schema}]
+Database = {schema}
+Description = Senzing MS SQL database for {schema}
+Driver = ODBC Driver 17 for SQL Server
+Port = {port}
+Server = {hostname}
+    """
+    return 0
+
 
 def database_initialization_mssql(config, parsed_database_url):
 
@@ -1204,12 +1220,25 @@ def database_initialization_mssql(config, parsed_database_url):
 
     if not os.path.exists(input_filename):
         logging.warning(message_warning(510, input_filename))
-        return
+        input_filename = "/tmp/odbc.ini.mssql-template"
+        with open(input_filename, 'w') as in_file:
+            logging.info(message_warning(157, input_filename))
+            in_file.write(database_initialization_mssql_odbc_ini_mssql_template.__doc__)
 
     # Backup existing file.
 
     if os.path.exists(output_filename):
         os.rename(output_filename, backup_filename)
+
+    # Create output directory.
+
+    output_directory = os.path.dirname(output_filename)
+    logging.info(message_info(162, output_directory))
+
+    try:
+        os.makedirs(output_directory, exist_ok=True)
+    except PermissionError as err:
+        exit_error(702, output_directory, err)
 
     # Create new file from input_filename template.
 

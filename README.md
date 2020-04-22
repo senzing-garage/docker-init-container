@@ -1,5 +1,16 @@
 # docker-init-contaner
 
+## Preamble
+
+At [Senzing](http://senzing.com),
+we strive to create GitHub documentation in a
+"[don't make me think](https://github.com/Senzing/knowledge-base/blob/master/WHATIS/dont-make-me-think.md)" style.
+For the most part, instructions are copy and paste.
+Whenever thinking is needed, it's marked with a "thinking" icon :thinking:.
+Whenever customization is needed, it's marked with a "pencil" icon :pencil2:.
+If the instructions are not clear, please let us know by opening a new
+[Documentation issue](https://github.com/Senzing/template-python/issues/new?template=documentation_request.md)
+describing where we can improve.   Now on with the show...
 ## Overview
 
 The `senzing/init-container` performs Senzing initializations.
@@ -26,8 +37,8 @@ The `senzing/init-container` performs Senzing initializations.
     1. [Docker volumes](#docker-volumes)
     1. [Docker network](#docker-network)
     1. [Docker user](#docker-user)
-    1. [External database](#external-database)
     1. [Database support](#database-support)
+    1. [External database](#external-database)
     1. [Run Docker container](#run-docker-container)
 1. [Develop](#develop)
     1. [Prerequisites for development](#prerequisites-for-development)
@@ -80,6 +91,12 @@ These are "one-time tasks" which may already have been completed.
         1. [Installation hints](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-python-dependencies.md)
 1. The following software programs need to be installed:
     1. [senzingapi](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/install-senzing-api.md)
+1. :thinking: **Optional:**  Some databases need additional support.
+   For other databases, this step may be skipped.
+    1. **Db2:** See
+       [Support Db2](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/support-db2.md).
+    1. **MS SQL:** See
+       [Support MS SQL](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/support-mssql.md).
 1. [Configure Senzing database](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/configure-senzing-database.md)
 
 ### Download
@@ -160,7 +177,7 @@ These are "one-time tasks" which may already have been completed.
    Example:
 
    ```console
-   ${SENZING_DOWNLOAD_FILE} --help
+   sudo ${SENZING_DOWNLOAD_FILE} --help
    ```
 
 1. For more examples of use, see [Examples of CLI](#examples-of-cli).
@@ -275,6 +292,18 @@ Use if a different userid (UID) is required.
     export SENZING_RUNAS_USER_PARAMETER="--user ${SENZING_RUNAS_USER}"
     ```
 
+### Database support
+
+:thinking: **Optional:**  Some databases need additional support.
+For other databases, these steps may be skipped.
+
+1. **Db2:** See
+   [Support Db2](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/support-db2.md)
+   instructions to set `SENZING_OPT_IBM_DIR_PARAMETER`.
+1. **MS SQL:** See
+   [Support MS SQL](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/support-mssql.md)
+   instructions to set `SENZING_OPT_MICROSOFT_DIR_PARAMETER`.
+
 ### External database
 
 :thinking: **Optional:**  Use if storing data in an external database.
@@ -305,18 +334,6 @@ If not specified, the internal SQLite database will be used.
     ```console
     export SENZING_DATABASE_URL_PARAMETER="--env SENZING_DATABASE_URL=${SENZING_DATABASE_URL}"
     ```
-
-### Database support
-
-:thinking: **Optional:**  Some databases need additional support.
-For other databases, these steps may be skipped.
-
-1. **Db2:** See
-   [Support Db2](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/support-db2.md)
-   instructions to set `SENZING_OPT_IBM_DIR_PARAMETER`.
-1. **MS SQL:** See
-   [Support MS SQL](https://github.com/Senzing/knowledge-base/blob/master/HOWTO/support-mssql.md)
-   instructions to set `SENZING_OPT_MICROSOFT_DIR_PARAMETER`.
 
 ### Run Docker container
 
