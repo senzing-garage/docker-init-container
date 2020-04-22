@@ -29,9 +29,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.4.0"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.5.1"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-04-01'
+__updated__ = '2020-04-22'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -380,18 +380,18 @@ MESSAGE_DEBUG = 900
 
 message_dictionary = {
     "100": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}I",
-    "151": "{0} - Changed permissions from {1:o} to {2:o}",
-    "152": "{0} - Changed owner from {1} to {2}",
-    "153": "{0} - Changed group from {1} to {2}",
-    "154": "{0} - Created file by copying {1}",
-    "155": "{0} - Deleted",
+    "151": "{0} - Changing permissions from {1:o} to {2:o}",
+    "152": "{0} - Changing owner from {1} to {2}",
+    "153": "{0} - Changing group from {1} to {2}",
+    "154": "{0} - Creating file by copying {1}",
+    "155": "{0} - Deleting",
     "156": "{0} - Modified. {1}",
-    "157": "{0} - Created file",
-    "158": "{0} - Created symlink to {1}",
-    "159": "{0} - Downloaded from {1}",
-    "160": "{0} - Copied and modified from {1}",
+    "157": "{0} - Creating file",
+    "158": "{0} - Creating symlink to {1}",
+    "159": "{0} - Downloading from {1}",
+    "160": "{0} - Copying {1} and modifying",
     "161": "{0} - Backup of current {1}",
-    "162": "{0} - Was not created because there is no {1}",
+    "162": "{0} - Creating directory",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
@@ -413,6 +413,7 @@ message_dictionary = {
     "699": "{0}",
     "700": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
     "701": "Error '{0}' caused by {1} error '{2}'",
+    "702": "Could not create '{0}' directory. Error: {1}",
     "886": "G2Engine.addRecord() bad return code: {0}; JSON: {1}",
     "888": "G2Engine.addRecord() G2ModuleNotInitialized: {0}; JSON: {1}",
     "889": "G2Engine.addRecord() G2ModuleGenericException: {0}; JSON: {1}",
@@ -428,6 +429,7 @@ message_dictionary = {
     "899": "{0}",
     "900": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}D",
     "901": "{0} will not be modified",
+    "902": "{0} - Was not created because there is no {1}",
     "999": "{0}",
 }
 
@@ -867,23 +869,27 @@ def change_directory_ownership(config):
         if os.path.isdir(directory):
             actual_uid = os.stat(directory).st_uid
             actual_gid = os.stat(directory).st_gid
-            os.chown(directory, int(uid), int(gid))
-            logging.info(message_info(152, directory, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+
+            if (actual_uid, actual_gid) != (uid, gid):
+                logging.info(message_info(152, directory, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                os.chown(directory, int(uid), int(gid))
 
             for root, dirs, files in os.walk(directory):
                 for dir in dirs:
                     dirname = os.path.join(root, dir)
                     actual_uid = os.stat(dirname).st_uid
                     actual_gid = os.stat(dirname).st_gid
-                    os.chown(dirname, int(uid), int(gid))
-                    logging.info(message_info(152, dirname, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                    if (actual_uid, actual_gid) != (uid, gid):
+                        logging.info(message_info(152, dirname, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                        os.chown(dirname, int(uid), int(gid))
 
                 for file in files:
                     filename = os.path.join(root, file)
                     actual_uid = os.stat(filename).st_uid
                     actual_gid = os.stat(filename).st_gid
-                    os.chown(filename, int(uid), int(gid))
-                    logging.info(message_info(152, filename, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                    if (actual_uid, actual_gid) != (uid, gid):
+                        logging.info(message_info(152, filename, "{0}:{1}".format(actual_uid, actual_gid), "{0}:{1}".format(uid, gid)))
+                        os.chown(filename, int(uid), int(gid))
 
 
 def change_file_permissions(config):
@@ -975,8 +981,8 @@ def change_file_permissions(config):
             # Change permissions, if needed.
 
             if actual_file_permissions != requested_file_permissions:
-                os.chmod(filename, requested_file_permissions)
                 logging.info(message_info(151, filename, actual_file_permissions, requested_file_permissions))
+                os.chmod(filename, requested_file_permissions)
 
             # Change ownership, if needed.
 
@@ -1125,15 +1131,15 @@ def copy_files(config):
         # Check if source file exists.
 
         if not os.path.exists(source_file):
-            logging.info(message_info(162, target_file, source_file))
+            logging.debug(message_debug(902, target_file, source_file))
             continue
 
         # If source file exists and the target doesn't exist, copy.
 
         if not os.path.exists(target_file):
+            logging.info(message_info(154, target_file, source_file))
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
             shutil.copyfile(source_file, target_file)
-            logging.info(message_info(154, target_file, source_file))
 
 
 def delete_files(config):
@@ -1152,8 +1158,8 @@ def delete_files(config):
 
     for file in files:
         if  os.path.exists(file):
-            os.remove(file)
             logging.info(message_info(155, file))
+            os.remove(file)
 
 
 def database_initialization_db2(config, parsed_database_url):
@@ -1175,11 +1181,11 @@ def database_initialization_db2(config, parsed_database_url):
 
     # Create new file from input_filename template.
 
+    logging.info(message_info(160, output_filename, input_filename))
     with open(input_filename, 'r') as in_file:
         with open(output_filename, 'w') as out_file:
             for line in in_file:
                 out_file.write(line.format(**parsed_database_url))
-    logging.info(message_info(160, output_filename, input_filename))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1188,6 +1194,19 @@ def database_initialization_db2(config, parsed_database_url):
             os.remove(backup_filename)
         else:
             logging.info(message_info(161, backup_filename, output_filename))
+
+# The following method is just a docstring for use in creating a template file.
+
+
+def database_initialization_mssql_odbc_ini_mssql_template():
+    """[{schema}]
+Database = {schema}
+Description = Senzing MS SQL database for {schema}
+Driver = ODBC Driver 17 for SQL Server
+Port = {port}
+Server = {hostname}
+    """
+    return 0
 
 
 def database_initialization_mssql(config, parsed_database_url):
@@ -1200,20 +1219,33 @@ def database_initialization_mssql(config, parsed_database_url):
 
     if not os.path.exists(input_filename):
         logging.warning(message_warning(510, input_filename))
-        return
+        input_filename = "/tmp/odbc.ini.mssql-template"
+        with open(input_filename, 'w') as in_file:
+            logging.info(message_warning(157, input_filename))
+            in_file.write(database_initialization_mssql_odbc_ini_mssql_template.__doc__)
 
     # Backup existing file.
 
     if os.path.exists(output_filename):
         os.rename(output_filename, backup_filename)
 
+    # Create output directory.
+
+    output_directory = os.path.dirname(output_filename)
+    logging.info(message_info(162, output_directory))
+
+    try:
+        os.makedirs(output_directory, exist_ok=True)
+    except PermissionError as err:
+        exit_error(702, output_directory, err)
+
     # Create new file from input_filename template.
 
+    logging.info(message_info(160, output_filename, input_filename))
     with open(input_filename, 'r') as in_file:
         with open(output_filename, 'w') as out_file:
             for line in in_file:
                 out_file.write(line.format(**parsed_database_url))
-    logging.info(message_info(160, output_filename, input_filename))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1237,31 +1269,31 @@ def database_initialization_mysql(config):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with urllib.request.urlopen(url) as response:
             with open(filename, 'wb') as out_file:
-                shutil.copyfileobj(response, out_file)
                 logging.info(message_info(159, filename, url))
+                shutil.copyfileobj(response, out_file)
 
     # Create file using "dpkg".
 
     if not os.path.exists(libmysqlclient):
         command = "dpkg --fsys-tarfile /opt/senzing/g2/download/libmysqlclient.deb | tar xOf - ./usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.0.16  > {0}".format(libmysqlclient)
         os.environ["DEBIAN_FRONTEND"] = "noninteractive"
-        os.system(command)
         logging.info(message_info(157, libmysqlclient))
+        os.system(command)
 
     # Change file permissions.
 
     actual_file_permissions = os.stat(libmysqlclient).st_mode & 0o777
     requested_file_permissions = 0o755
     if actual_file_permissions != requested_file_permissions:
-        os.chmod(libmysqlclient, requested_file_permissions)
         logging.info(message_info(151, libmysqlclient, actual_file_permissions, requested_file_permissions))
+        os.chmod(libmysqlclient, requested_file_permissions)
 
     # Make a soft link
 
     if not os.path.exists(libmysqlclient_link):
         libmysqlclient_filename = os.path.basename(libmysqlclient)
-        os.symlink(libmysqlclient_filename, libmysqlclient_link)
         logging.info(message_info(158, libmysqlclient_link, libmysqlclient))
+        os.symlink(libmysqlclient_filename, libmysqlclient_link)
 
 
 def database_initialization(config):

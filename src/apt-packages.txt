@@ -1,2 +1,5 @@
 curl
 python3-pip
+postgresql-client
+unixodbc
+unixodbc-dev
