@@ -177,7 +177,7 @@ These are "one-time tasks" which may already have been completed.
    Example:
 
    ```console
-   sudo ${SENZING_DOWNLOAD_FILE} --help
+   sudo PYTHONPATH=${PYTHONPATH} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ${SENZING_DOWNLOAD_FILE} --help
    ```
 
 1. For more examples of use, see [Examples of CLI](#examples-of-cli).
@@ -445,11 +445,15 @@ The database is not initialized.
    Example:
 
     ```console
-    init-container.py initialize-files \
-      --etc-dir  ${SENZING_VOLUME}/etc \
-      --g2-dir   ${SENZING_VOLUME}/g2 \
-      --data-dir ${SENZING_VOLUME}/data \
-      --var-dir  ${SENZING_VOLUME}/var
+    sudo \
+      PYTHONPATH=${PYTHONPATH} \
+      LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+      --preserve-env \
+      init-container.py initialize-files \
+        --etc-dir  ${SENZING_VOLUME}/etc \
+        --g2-dir   ${SENZING_VOLUME}/g2 \
+        --data-dir ${SENZING_VOLUME}/data \
+        --var-dir  ${SENZING_VOLUME}/var
     ```
 
 #### Init PostgreSQL
@@ -479,12 +483,16 @@ In this example, a PostgreSQL database is initialized.
    Example:
 
     ```console
-    init-container.py initialize-database \
-      --database-url ${SENZING_DATABASE_URL} \
-      --etc-dir  ${SENZING_VOLUME}/etc \
-      --g2-dir   ${SENZING_VOLUME}/g2 \
-      --data-dir ${SENZING_VOLUME}/data \
-      --var-dir  ${SENZING_VOLUME}/var
+    sudo \
+      PYTHONPATH=${PYTHONPATH} \
+      LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+      --preserve-env \
+      init-container.py initialize-database \
+        --database-url ${SENZING_DATABASE_URL} \
+        --etc-dir  ${SENZING_VOLUME}/etc \
+        --g2-dir   ${SENZING_VOLUME}/g2 \
+        --data-dir ${SENZING_VOLUME}/data \
+        --var-dir  ${SENZING_VOLUME}/var
     ```
 
 #### Init a Senzing volume and PostgreSQL
@@ -526,12 +534,16 @@ In this example, a PostgreSQL database is initialized.
    Example:
 
     ```console
-    init-container.py initialize \
-      --database-url ${SENZING_DATABASE_URL} \
-      --etc-dir  ${SENZING_VOLUME}/etc \
-      --g2-dir   ${SENZING_VOLUME}/g2 \
-      --data-dir ${SENZING_VOLUME}/data \
-      --var-dir  ${SENZING_VOLUME}/var
+    sudo \
+      PYTHONPATH=${PYTHONPATH} \
+      LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+      --preserve-env \
+      init-container.py initialize \
+        --database-url ${SENZING_DATABASE_URL} \
+        --etc-dir  ${SENZING_VOLUME}/etc \
+        --g2-dir   ${SENZING_VOLUME}/g2 \
+        --data-dir ${SENZING_VOLUME}/data \
+        --var-dir  ${SENZING_VOLUME}/var
     ```
 
 ### Examples of Docker
