@@ -11,6 +11,7 @@ Whenever customization is needed, it's marked with a "pencil" icon :pencil2:.
 If the instructions are not clear, please let us know by opening a new
 [Documentation issue](https://github.com/Senzing/template-python/issues/new?template=documentation_request.md)
 describing where we can improve.   Now on with the show...
+
 ## Overview
 
 The `senzing/init-container` performs Senzing initializations.
@@ -177,7 +178,10 @@ These are "one-time tasks" which may already have been completed.
    Example:
 
    ```console
-   sudo PYTHONPATH=${PYTHONPATH} LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ${SENZING_DOWNLOAD_FILE} --help
+   sudo \
+     PYTHONPATH=${PYTHONPATH} \
+     LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
+     ${SENZING_DOWNLOAD_FILE} --help
    ```
 
 1. For more examples of use, see [Examples of CLI](#examples-of-cli).

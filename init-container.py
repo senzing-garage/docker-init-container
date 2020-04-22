@@ -1199,8 +1199,7 @@ def database_initialization_db2(config, parsed_database_url):
 
 
 def database_initialization_mssql_odbc_ini_mssql_template():
-    """
-[{schema}]
+    """[{schema}]
 Database = {schema}
 Description = Senzing MS SQL database for {schema}
 Driver = ODBC Driver 17 for SQL Server
