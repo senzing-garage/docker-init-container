@@ -426,6 +426,9 @@ see [Environment Variables](https://github.com/Senzing/knowledge-base/blob/maste
 
 ### Examples of CLI
 
+The following examples require initialization described in
+[Demonstrate using Command Line Interface](#demonstrate-using-command-line-interface).
+
 #### Init a Senzing volume and PostgreSQL
 
 In this example, the `/etc` and `/var` directories are initialized
@@ -554,6 +557,9 @@ In this example, a PostgreSQL database is initialized.
     ```
 
 ### Examples of Docker
+
+The following examples require initialization described in
+[Demonstrate using Docker](#demonstrate-using-docker).
 
 ## Advanced
 
