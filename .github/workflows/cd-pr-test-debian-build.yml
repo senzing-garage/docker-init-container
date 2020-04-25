@@ -21,7 +21,7 @@ jobs:
           make \
             BASE_IMAGE="senzing/senzing-base:1.4.0" \
             docker-build
-  logPrDockerYum:
+  logPrDockerInitContainer:
     needs: buildInitContainer
     if: always()
     runs-on: ubuntu-latest
@@ -49,7 +49,7 @@ jobs:
             Branch Name: ${{ steps.job_info.outputs.branch_name }}
             The commit SHA is: ${{ github.sha }}
             Git Actions Log URL: ${{ steps.job_info.outputs.html_url }}
-          SLACK_USERNAME: docker-yum
+          SLACK_USERNAME: docker-init-container
           SLACK_WEBHOOK: ${{ secrets.SLACK_NOTIFICATION }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_REPOSITORY: ${{ github.repository }}
