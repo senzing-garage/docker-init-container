@@ -13,6 +13,11 @@ HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
 USER root
 
+RUN apt update \
+ && apt -y install \
+      odbc-postgresql \
+ && rm -rf /var/lib/apt/lists/*
+
 # Copy files from repository.
 
 COPY ./rootfs /

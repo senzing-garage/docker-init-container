@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.5.1"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-04-22'
+__updated__ = '2020-04-27'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -81,6 +81,11 @@ configuration_locator = {
         "default": False,
         "env": "SENZING_ENABLE_MYSQL",
         "cli": "enable-mysql"
+    },
+    "enable_postgresql": {
+        "default": False,
+        "env": "SENZING_ENABLE_POSTGRESQL",
+        "cli": "enable-postgresql"
     },
     "engine_configuration_json": {
         "default": None,
@@ -161,178 +166,22 @@ def get_parser():
     subcommands = {
         'initialize': {
             "help": 'Initialize a newly installed Senzing',
-            "arguments": {
-                "--database-url": {
-                    "dest": "g2_database_url",
-                    "metavar": "SENZING_DATABASE_URL",
-                    "help": "Information for connecting to database."
-                },
-                "--debug": {
-                    "dest": "debug",
-                    "action": "store_true",
-                    "help": "Enable debugging. (SENZING_DEBUG) Default: False"
-                },
-                "--enable-db2": {
-                    "dest": "enable_db2",
-                    "action": "store_true",
-                    "help": "Enable db2 database. (SENZING_ENABLE_DB2) Default: False"
-                },
-                "--enable-mssql": {
-                    "dest": "enable_mssql",
-                    "action": "store_true",
-                    "help": "Enable MS SQL database. (SENZING_ENABLE_MSSQL) Default: False"
-                },
-                "--enable-mysql": {
-                    "dest": "enable_mysql",
-                    "action": "store_true",
-                    "help": "Enable MySQL database. (SENZING_ENABLE_MYSQL) Default: False"
-                },
-                "--engine-configuration-json": {
-                    "dest": "engine_configuration_json",
-                    "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
-                    "help": "Advanced Senzing engine configuration. Default: none"
-                },
-                "--etc-dir": {
-                    "dest": "etc_dir",
-                    "metavar": "SENZING_ETC_DIR",
-                    "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
-                },
-                "--g2-dir": {
-                    "dest": "g2_dir",
-                    "metavar": "SENZING_G2_DIR",
-                    "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
-                },
-                "--gid": {
-                    "dest": "gid",
-                    "metavar": "SENZING_GID",
-                    "help": "GID for file ownership. Default: 1001"
-                },
-                "--data-dir": {
-                    "dest": "data_dir",
-                    "metavar": "SENZING_DATA_DIR",
-                    "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
-                },
-                "--uid": {
-                    "dest": "uid",
-                    "metavar": "SENZING_UID",
-                    "help": "UID for file ownership. Default: 1001"
-                },
-                "--var-dir": {
-                    "dest": "var_dir",
-                    "metavar": "SENZING_VAR_DIR",
-                    "help": "Location of senzing var directory. Default: /var/opt/senzing"
-                },
-            },
+            "argument_aspects": ["common", "senzing-volumes", "enable", "uidgid"],
         },
         'initialize-database': {
             "help": 'Initialize only the database. This is a subset of the full initialize sub-commmand',
+            "argument_aspects": ["common", "senzing-volumes"],
             "arguments": {
-                "--database-url": {
-                    "dest": "g2_database_url",
-                    "metavar": "SENZING_DATABASE_URL",
-                    "help": "Information for connecting to database."
-                },
-                "--debug": {
-                    "dest": "debug",
-                    "action": "store_true",
-                    "help": "Enable debugging. (SENZING_DEBUG) Default: False"
-                },
-                "--engine-configuration-json": {
-                    "dest": "engine_configuration_json",
-                    "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
-                    "help": "Advanced Senzing engine configuration. Default: none"
-                },
-                "--etc-dir": {
-                    "dest": "etc_dir",
-                    "metavar": "SENZING_ETC_DIR",
-                    "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
-                },
-                "--g2-dir": {
-                    "dest": "g2_dir",
-                    "metavar": "SENZING_G2_DIR",
-                    "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
-                },
-                "--data-dir": {
-                    "dest": "data_dir",
-                    "metavar": "SENZING_DATA_DIR",
-                    "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
-                },
                 "--update-ini-files": {
                     "dest": "update_ini_files",
                     "action": "store_true",
                     "help": "Update INI files: G2Module.ini, G2Project.ini. (SENZING_UPDATE_INI_FILES) Default: False"
                 },
-                "--var-dir": {
-                    "dest": "var_dir",
-                    "metavar": "SENZING_VAR_DIR",
-                    "help": "Location of senzing var directory. Default: /var/opt/senzing"
-                },
             },
         },
         'initialize-files': {
             "help": 'Initialize only the files. This is a subset of the full initialize sub-commmand',
-            "arguments": {
-                "--database-url": {
-                    "dest": "g2_database_url",
-                    "metavar": "SENZING_DATABASE_URL",
-                    "help": "Information for connecting to database."
-                },
-                "--debug": {
-                    "dest": "debug",
-                    "action": "store_true",
-                    "help": "Enable debugging. (SENZING_DEBUG) Default: False"
-                },
-                "--enable-db2": {
-                    "dest": "enable_db2",
-                    "action": "store_true",
-                    "help": "Enable db2 database. (SENZING_ENABLE_DB2) Default: False"
-                },
-                "--enable-mssql": {
-                    "dest": "enable_mssql",
-                    "action": "store_true",
-                    "help": "Enable MS SQL database. (SENZING_ENABLE_MSSQL) Default: False"
-                },
-                "--enable-mysql": {
-                    "dest": "enable_mysql",
-                    "action": "store_true",
-                    "help": "Enable MySQL database. (SENZING_ENABLE_MYSQL) Default: False"
-                },
-                "--engine-configuration-json": {
-                    "dest": "engine_configuration_json",
-                    "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
-                    "help": "Advanced Senzing engine configuration. Default: none"
-                },
-                "--etc-dir": {
-                    "dest": "etc_dir",
-                    "metavar": "SENZING_ETC_DIR",
-                    "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
-                },
-                "--g2-dir": {
-                    "dest": "g2_dir",
-                    "metavar": "SENZING_G2_DIR",
-                    "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
-                },
-                "--gid": {
-                    "dest": "gid",
-                    "metavar": "SENZING_GID",
-                    "help": "GID for file ownership. Default: 1001"
-                },
-                "--data-dir": {
-                    "dest": "data_dir",
-                    "metavar": "SENZING_DATA_DIR",
-                    "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
-                },
-                "--uid": {
-                    "dest": "uid",
-                    "metavar": "SENZING_UID",
-                    "help": "UID for file ownership. Default: 1001"
-                },
-                "--var-dir": {
-                    "dest": "var_dir",
-                    "metavar": "SENZING_VAR_DIR",
-                    "help": "Location of senzing var directory. Default: /var/opt/senzing"
-                },
-            },
+            "argument_aspects": ["common", "senzing-volumes", "enable", "uidgid"],
         },
         'sleep': {
             "help": 'Do nothing but sleep. For Docker testing.',
@@ -351,6 +200,95 @@ def get_parser():
             "help": 'For Docker acceptance testing.',
         },
     }
+
+   # Define argument_aspects.
+
+    argument_aspects = {
+        "common": {
+            "--database-url": {
+                "dest": "g2_database_url",
+                "metavar": "SENZING_DATABASE_URL",
+                "help": "Information for connecting to database."
+            },
+            "--debug": {
+                "dest": "debug",
+                "action": "store_true",
+                "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+            },
+            "--engine-configuration-json": {
+                "dest": "engine_configuration_json",
+                "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
+                "help": "Advanced Senzing engine configuration. Default: none"
+            },
+        },
+        "enable": {
+            "--enable-db2": {
+                "dest": "enable_db2",
+                "action": "store_true",
+                "help": "Enable db2 database. (SENZING_ENABLE_DB2) Default: False"
+            },
+            "--enable-mssql": {
+                "dest": "enable_mssql",
+                "action": "store_true",
+                "help": "Enable MS SQL database. (SENZING_ENABLE_MSSQL) Default: False"
+            },
+            "--enable-mysql": {
+                "dest": "enable_mysql",
+                "action": "store_true",
+                "help": "Enable MySQL database. (SENZING_ENABLE_MYSQL) Default: False"
+            },
+            "--enable-postgresql": {
+                "dest": "enable_postgresql",
+                "action": "store_true",
+                "help": "Enable PostgreSQL database. (SENZING_ENABLE_POSTGRESQL) Default: False"
+            },
+        },
+        "senzing-volumes": {
+            "--etc-dir": {
+                "dest": "etc_dir",
+                "metavar": "SENZING_ETC_DIR",
+                "help": "Location of senzing etc directory. Default: /etc/opt/senzing"
+            },
+            "--g2-dir": {
+                "dest": "g2_dir",
+                "metavar": "SENZING_G2_DIR",
+                "help": "Location of senzing g2 directory. Default: /opt/senzing/g2"
+            },
+            "--data-dir": {
+                "dest": "data_dir",
+                "metavar": "SENZING_DATA_DIR",
+                "help": "Location of Senzing's support. Default: /opt/senzing/g2/data"
+            },
+            "--var-dir": {
+                "dest": "var_dir",
+                "metavar": "SENZING_VAR_DIR",
+                "help": "Location of senzing var directory. Default: /var/opt/senzing"
+            },
+        },
+        "uidgid": {
+            "--gid": {
+                "dest": "gid",
+                "metavar": "SENZING_GID",
+                "help": "GID for file ownership. Default: 1001"
+            },
+            "--uid": {
+                "dest": "uid",
+                "metavar": "SENZING_UID",
+                "help": "UID for file ownership. Default: 1001"
+            },
+        },
+    }
+
+    # Augment "subcommands" variable with arguments specified by aspects.
+
+    for subcommand, subcommand_value in subcommands.items():
+        if 'argument_aspects' in subcommand_value:
+            for aspect in subcommand_value['argument_aspects']:
+                if 'arguments' not in subcommands[subcommand]:
+                    subcommands[subcommand]['arguments'] = {}
+                arguments = argument_aspects.get(aspect, {})
+                for argument, argument_value in arguments.items():
+                    subcommands[subcommand]['arguments'][argument] = argument_value
 
     parser = argparse.ArgumentParser(prog="init-container.py", description="Initialize Senzing installation. For more information, see https://github.com/Senzing/docker-init-container")
     subparsers = parser.add_subparsers(dest='subcommand', help='Subcommands (SENZING_SUBCOMMAND):')
@@ -653,6 +591,7 @@ def get_configuration(args):
         'enable_db2'
         'enable_mssql',
         'enable_mysql',
+        'enable_postgresql'
         'update_ini_files'
     ]
     for boolean in booleans:
@@ -1199,7 +1138,17 @@ Description = Senzing MS SQL database for {schema}
 Driver = ODBC Driver 17 for SQL Server
 Port = {port}
 Server = {hostname}
-    """
+"""
+    return 0
+
+
+def database_initialization_postgresql_odbc_ini_postgresql_template():
+    """[{schema}]
+Database = {schema}
+Driver = PostgreSQL Unicode
+Port = {port}
+Servername = {hostname}
+"""
     return 0
 
 
@@ -1250,7 +1199,7 @@ def database_initialization_mssql(config, parsed_database_url):
             logging.info(message_info(161, backup_filename, output_filename))
 
 
-def database_initialization_mysql(config):
+def database_initialization_mysql(config, parsed_database_url):
 
     url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.16-2debian9_amd64.deb"
     filename = "/opt/senzing/g2/download/libmysqlclient.deb"
@@ -1290,6 +1239,77 @@ def database_initialization_mysql(config):
         os.symlink(libmysqlclient_filename, libmysqlclient_link)
 
 
+def database_initialization_postgresql(config, parsed_database_url):
+
+    input_filename = "/etc/opt/senzing/odbc.ini.postgresql-template"
+    output_filename = "/etc/opt/senzing/odbc.ini"
+    backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
+
+    # Detect error and exit, if needed.
+
+    if not os.path.exists(input_filename):
+        logging.warning(message_warning(510, input_filename))
+        input_filename = "/tmp/odbc.ini.postgresql-template"
+        with open(input_filename, 'w') as in_file:
+            logging.info(message_warning(157, input_filename))
+            in_file.write(database_initialization_postgresql_odbc_ini_postgresql_template.__doc__)
+
+    # Backup existing file.
+
+    if os.path.exists(output_filename):
+        os.rename(output_filename, backup_filename)
+
+    # Create output directory.
+
+    output_directory = os.path.dirname(output_filename)
+    logging.info(message_info(162, output_directory))
+
+    try:
+        os.makedirs(output_directory, exist_ok=True)
+    except PermissionError as err:
+        exit_error(702, output_directory, err)
+
+    # Create new file from input_filename template.
+
+    logging.info(message_info(160, output_filename, input_filename))
+    with open(input_filename, 'r') as in_file:
+        with open(output_filename, 'w') as out_file:
+            for line in in_file:
+                out_file.write(line.format(**parsed_database_url))
+
+    # Remove backup file if it is the same as the new file.
+
+    if os.path.exists(backup_filename):
+        if filecmp.cmp(output_filename, backup_filename):
+            os.remove(backup_filename)
+        else:
+            logging.info(message_info(161, backup_filename, output_filename))
+
+    # Copy odbcinst.ini from /etc to /etc/opt/senzing
+
+    input_odbcinst_filename = "/etc/odbcinst.ini"
+    output_odbcinst_filename = "/etc/opt/senzing/odbcinst.ini"
+    backup_odbcinst_filename = "{0}.{1}".format(output_odbcinst_filename, int(time.time()))
+
+    # Backup existing file.
+
+    if os.path.exists(output_odbcinst_filename):
+        os.rename(output_odbcinst_filename, backup_odbcinst_filename)
+
+    # Copy odbcinst.ini to /etc/opt/senzing.
+
+    if os.path.exists(input_odbcinst_filename):
+        shutil.copyfile(input_odbcinst_filename, output_odbcinst_filename)
+
+    # Remove backup file if it is the same as the new file.
+
+    if os.path.exists(backup_odbcinst_filename):
+        if filecmp.cmp(output_odbcinst_filename, backup_odbcinst_filename):
+            os.remove(backup_odbcinst_filename)
+        else:
+            logging.info(message_info(161, backup_odbcinst_filename, output_odbcinst_filename))
+
+
 def database_initialization(config):
     ''' Given a canonical database URL, transform to the specific URL. '''
 
@@ -1298,6 +1318,7 @@ def database_initialization(config):
     enable_db2 = config.get('enable_db2')
     enable_mssql = config.get('enable_mssql')
     enable_mysql = config.get('enable_mysql')
+    enable_postgresql = config.get('enable_postgresql')
 
     parsed_database_url = parse_database_url(database_url)
     scheme = parsed_database_url.get('scheme')
@@ -1305,9 +1326,9 @@ def database_initialization(config):
     # Format database URL for a particular database.
 
     if scheme in ['mysql'] or enable_mysql:
-        result = database_initialization_mysql(config)
-    elif scheme in ['postgresql']:
-        pass
+        result = database_initialization_mysql(config, parsed_database_url)
+    elif scheme in ['postgresql'] or enable_postgresql:
+        result = database_initialization_postgresql(config, parsed_database_url)
     elif scheme in ['db2'] or enable_db2:
         result = database_initialization_db2(config, parsed_database_url)
     elif scheme in ['sqlite3']:
