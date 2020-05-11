@@ -31,7 +31,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.5.1"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-04-27'
+__updated__ = '2020-05-11'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -1071,7 +1071,8 @@ def copy_files(config):
 
         if not os.path.exists(target_file):
             logging.info(message_info(154, target_file, source_file))
-            os.makedirs(os.path.dirname(target_file), exist_ok=True)
+            if not os.path.exists(os.path.dirname(target_file)):
+                os.makedirs(os.path.dirname(target_file))
             shutil.copyfile(source_file, target_file)
 
 
@@ -1178,7 +1179,8 @@ def database_initialization_mssql(config, parsed_database_url):
     logging.info(message_info(162, output_directory))
 
     try:
-        os.makedirs(output_directory, exist_ok=True)
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
     except PermissionError as err:
         exit_error(702, output_directory, err)
 
@@ -1209,7 +1211,8 @@ def database_initialization_mysql(config, parsed_database_url):
     # Download the file.
 
     if not os.path.exists(filename):
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
         with urllib.request.urlopen(url) as response:
             with open(filename, 'wb') as out_file:
                 logging.info(message_info(159, filename, url))
@@ -1265,7 +1268,8 @@ def database_initialization_postgresql(config, parsed_database_url):
     logging.info(message_info(162, output_directory))
 
     try:
-        os.makedirs(output_directory, exist_ok=True)
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
     except PermissionError as err:
         exit_error(702, output_directory, err)
 
