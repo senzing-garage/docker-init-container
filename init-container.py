@@ -29,9 +29,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.5.1"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.5.5"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-05-11'
+__updated__ = '2020-07-07'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -578,6 +578,11 @@ def get_configuration(args):
         new_key = key.format(subcommand.replace('-', '_'))
         if value:
             result[new_key] = value
+
+    # Add program information.
+
+    result['program_version'] = __version__
+    result['program_updated'] = __updated__
 
     # Special case: subcommand from command-line
 
