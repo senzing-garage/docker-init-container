@@ -19,7 +19,7 @@ jobs:
         id: build_init_container
         run: |
           make \
-            BASE_IMAGE="senzing/senzing-base:1.4.0" \
+            BASE_IMAGE="senzing/senzing-base:1.5.2" \
             docker-build
   logPrDockerInitContainer:
     needs: buildInitContainer
@@ -45,7 +45,7 @@ jobs:
           SLACK_COLOR: '#3278BD'
           SLACK_TITLE: Docker Init Container failed to build on commit sha ${{ github.sha }}
           SLACK_MESSAGE: |
-            OS: senzing/senzing-base:1.4.0
+            OS: senzing/senzing-base:1.5.2
             Branch Name: ${{ steps.job_info.outputs.branch_name }}
             The commit SHA is: ${{ github.sha }}
             Git Actions Log URL: ${{ steps.job_info.outputs.html_url }}
