@@ -1142,8 +1142,7 @@ def database_initialization_mssql_odbc_ini_mssql_template():
 Database = {schema}
 Description = Senzing MS SQL database for {schema}
 Driver = ODBC Driver 17 for SQL Server
-Port = {port}
-Server = {hostname}
+Server = {hostname},{port}
 """
     return 0
 
