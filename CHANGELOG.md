@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.8] - 2020-09-15
+
+### Changed in 1.5.8
+
+- Changed permissions on db2dsdriver.cfg to 755 (from 750)
+
 ## [1.5.7] - 2020-09-02
 
 ### Changed in 1.5.7

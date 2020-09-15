@@ -29,9 +29,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.5.7"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.5.8"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-09-02'
+__updated__ = '2020-09-15'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -892,7 +892,7 @@ def change_file_permissions(config):
         },
         {
             "filename": "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg",
-            "permissions": 0o750,
+            "permissions": 0o755,
             "uid": uid,
             "gid": gid,
         },
