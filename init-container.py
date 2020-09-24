@@ -346,6 +346,7 @@ message_dictionary = {
     "298": "Exit {0}",
     "299": "{0}",
     "300": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}W",
+    "301": "Could not download the senzing postgresql governor from {0}. Ignore this on air gapped systems. Exception details: {1}",
     "499": "{0}",
     "500": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
     "510": "{0} - File is missing.",
@@ -1321,14 +1322,17 @@ def database_initialization_postgresql(config, parsed_database_url):
             logging.info(message_info(161, backup_odbcinst_filename, output_odbcinst_filename))
 
     # If postgres, enable the postgres governor if one does not already exist.
-    if parsed_database_url['scheme'] == 'postgresql':        
+    if parsed_database_url['scheme'] == 'postgresql':
         if not os.path.exists("/opt/senzing/g2/python/senzing_governor.py"):
             governor_url = 'https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py'
             governor_destination = '/opt/senzing/g2/python/senzing_governor.py'
             logging.info(message_info(180, governor_url, governor_destination))
-            urllib.request.urlretrieve(
-                governor_url,
-                governor_destination)
+            try:
+                urllib.request.urlretrieve(
+                    governor_url,
+                    governor_destination)
+            except urllib.error.URLError as err:
+                logging.warning(message_warning(301, governor_url, err))
         else:
             logging.info(message_info(181))
 
