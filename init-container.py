@@ -1100,7 +1100,7 @@ def delete_files(config):
     # Copy files.
 
     for file in files:
-        if  os.path.exists(file):
+        if os.path.exists(file):
             logging.info(message_info(155, file))
             os.remove(file)
 
@@ -1335,6 +1335,7 @@ def database_initialization_postgresql(config, parsed_database_url):
                 logging.warning(message_warning(301, governor_url, err))
         else:
             logging.info(message_info(181))
+
 
 def database_initialization(config):
     ''' Given a canonical database URL, transform to the specific URL. '''
