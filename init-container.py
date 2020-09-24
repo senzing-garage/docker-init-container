@@ -20,6 +20,7 @@ import stat
 import string
 import sys
 import time
+import urllib
 
 try:
     from G2Config import G2Config
@@ -334,6 +335,8 @@ message_dictionary = {
     "162": "{0} - Creating directory",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
+    "180": "Postgresql detected, installing default governor from {0} to {1}",
+    "181": "Postgresql detected but using existing governor",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -343,6 +346,7 @@ message_dictionary = {
     "298": "Exit {0}",
     "299": "{0}",
     "300": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}W",
+    "301": "Could not download the senzing postgresql governor from {0}. Ignore this on air gapped systems. Exception details: {1}",
     "499": "{0}",
     "500": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
     "510": "{0} - File is missing.",
@@ -1096,7 +1100,7 @@ def delete_files(config):
     # Copy files.
 
     for file in files:
-        if  os.path.exists(file):
+        if os.path.exists(file):
             logging.info(message_info(155, file))
             os.remove(file)
 
@@ -1316,6 +1320,21 @@ def database_initialization_postgresql(config, parsed_database_url):
             os.remove(backup_odbcinst_filename)
         else:
             logging.info(message_info(161, backup_odbcinst_filename, output_odbcinst_filename))
+
+    # If postgres, enable the postgres governor if one does not already exist.
+    if parsed_database_url['scheme'] == 'postgresql':
+        if not os.path.exists("/opt/senzing/g2/python/senzing_governor.py"):
+            governor_url = 'https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py'
+            governor_destination = '/opt/senzing/g2/python/senzing_governor.py'
+            logging.info(message_info(180, governor_url, governor_destination))
+            try:
+                urllib.request.urlretrieve(
+                    governor_url,
+                    governor_destination)
+            except urllib.error.URLError as err:
+                logging.warning(message_warning(301, governor_url, err))
+        else:
+            logging.info(message_info(181))
 
 
 def database_initialization(config):
