@@ -20,6 +20,7 @@ import stat
 import string
 import sys
 import time
+import urllib
 
 try:
     from G2Config import G2Config
@@ -334,6 +335,8 @@ message_dictionary = {
     "162": "{0} - Creating directory",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
+    "180": "Postgresql detected, installing default governor from {0} to {1}",
+    "181": "Postgresql detected but using existing governor",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -1317,6 +1320,17 @@ def database_initialization_postgresql(config, parsed_database_url):
         else:
             logging.info(message_info(161, backup_odbcinst_filename, output_odbcinst_filename))
 
+    # If postgres, enable the postgres governor if one does not already exist.
+    if parsed_database_url['scheme'] == 'postgresql':        
+        if not os.path.exists("/opt/senzing/g2/python/senzing_governor.py"):
+            governor_url = 'https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py'
+            governor_destination = '/opt/senzing/g2/python/senzing_governor.py'
+            logging.info(message_info(180, governor_url, governor_destination))
+            urllib.request.urlretrieve(
+                governor_url,
+                governor_destination)
+        else:
+            logging.info(message_info(181))
 
 def database_initialization(config):
     ''' Given a canonical database URL, transform to the specific URL. '''
