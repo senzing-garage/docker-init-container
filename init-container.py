@@ -63,6 +63,11 @@ configuration_locator = {
         "env": "SENZING_DEBUG",
         "cli": "debug"
     },
+    "delay_in_seconds": {
+        "default": 0,
+        "env": "SENZING_DELAY_IN_SECONDS",
+        "cli": "delay-in-seconds"
+    },
     "etc_dir": {
         "default": "/etc/opt/senzing",
         "env": "SENZING_ETC_DIR",
@@ -112,11 +117,6 @@ configuration_locator = {
         "default": 1001,
         "env": "SENZING_GID",
         "cli": "gid"
-    },
-    "init_container_sleep": {
-        "default": 0,
-        "env": "SENZING_INIT_CONTAINER_SLEEP",
-        "cli": "init-container-sleep"
     },
     "sleep_time_in_seconds": {
         "default": 0,
@@ -215,6 +215,11 @@ def get_parser():
                 "dest": "debug",
                 "action": "store_true",
                 "help": "Enable debugging. (SENZING_DEBUG) Default: False"
+            },
+            "--delay-in-seconds": {
+                "dest": "delay_in_seconds",
+                "metavar": "SENZING_DELAY_IN_SECONDS",
+                "help": "Delay before processing in seconds. DEFAULT: 0"
             },
             "--engine-configuration-json": {
                 "dest": "engine_configuration_json",
@@ -615,7 +620,7 @@ def get_configuration(args):
     # Special case: Change integer strings to integers.
 
     integers = [
-        'init_container_sleep',
+        'delay_in_seconds',
         'sleep_time_in_seconds',
         ]
     for integer in integers:
@@ -692,6 +697,13 @@ def create_signal_handler_function(args):
 
 def bootstrap_signal_handler(signal, frame):
     sys.exit(0)
+
+
+def delay(config):
+    delay_in_seconds = config.get('delay_in_seconds')
+    if delay_in_seconds > 0:
+        logging.info(message_info(296, delay_in_seconds))
+        time.sleep(delay_in_seconds)
 
 
 def entry_template(config):
@@ -1467,10 +1479,7 @@ def do_initialize(args):
 
     # Sleep, if requested.
 
-    init_container_sleep = config.get("init_container_sleep")
-    if init_container_sleep > 0:
-        logging.info(message_info(296, init_container_sleep))
-        time.sleep(init_container_sleep)
+    delay(config)
 
     # Copy files.
 
