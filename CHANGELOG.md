@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed in 1.5.8
 
 - Replacing SENZING_INIT_CONTAINER_SLEEP with SENZING_DELAY_IN_SECONDS to be consistent with other Senzing images
+- Automatically downloading and installing Senzing postgresql governor if no governor exists.
 
 
 ## [1.5.8] - 2020-09-15
