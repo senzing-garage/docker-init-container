@@ -30,9 +30,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.5.8"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.5.10"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-09-15'
+__updated__ = '2020-10-23'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -176,7 +176,7 @@ def get_parser():
                 "--update-ini-files": {
                     "dest": "update_ini_files",
                     "action": "store_true",
-                    "help": "Update INI files: G2Module.ini, G2Project.ini. (SENZING_UPDATE_INI_FILES) Default: False"
+                    "help": "Update INI files: G2Module.ini, (SENZING_UPDATE_INI_FILES) Default: False"
                 },
             },
         },
@@ -991,6 +991,14 @@ def change_project_ini(config):
     # Read G2Project.ini.
 
     filename = "{0}/G2Project.ini".format(etc_dir)
+
+    # As of Senzing 2.3.0 this file doesn't exist.
+
+    if not os.path.exists(filename):
+        return
+
+    # Parse the ini file.
+
     config_parser = configparser.ConfigParser()
     config_parser.optionxform = str  # Maintain case of keys
     config_parser.read(filename)
