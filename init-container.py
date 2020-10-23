@@ -176,7 +176,7 @@ def get_parser():
                 "--update-ini-files": {
                     "dest": "update_ini_files",
                     "action": "store_true",
-                    "help": "Update INI files: G2Module.ini, G2Project.ini. (SENZING_UPDATE_INI_FILES) Default: False"
+                    "help": "Update INI files: G2Module.ini, (SENZING_UPDATE_INI_FILES) Default: False"
                 },
             },
         },
