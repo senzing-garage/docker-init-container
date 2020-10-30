@@ -30,9 +30,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.5.10"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.5.11"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-10-23'
+__updated__ = '2020-10-30'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -1233,7 +1233,7 @@ def database_initialization_mysql(config, parsed_database_url):
 
     url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.20-1debian10_amd64.deb"
     filename = "/opt/senzing/g2/download/libmysqlclient.deb"
-    libmysqlclient = "/opt/senzing/g2/lib/libmysqlclient.so.21.0.16"
+    libmysqlclient = "/opt/senzing/g2/lib/libmysqlclient.so.21.1.20"
     libmysqlclient_link = "/opt/senzing/g2/lib/libmysqlclient.so.21"
 
     # Download the file.
@@ -1249,7 +1249,7 @@ def database_initialization_mysql(config, parsed_database_url):
     # Create file using "dpkg".
 
     if not os.path.exists(libmysqlclient):
-        command = "dpkg --fsys-tarfile /opt/senzing/g2/download/libmysqlclient.deb | tar xOf - ./usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.0.16  > {0}".format(libmysqlclient)
+        command = "dpkg --fsys-tarfile /opt/senzing/g2/download/libmysqlclient.deb | tar xOf - ./usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.1.20  > {0}".format(libmysqlclient)
         os.environ["DEBIAN_FRONTEND"] = "noninteractive"
         logging.info(message_info(157, libmysqlclient))
         os.system(command)
