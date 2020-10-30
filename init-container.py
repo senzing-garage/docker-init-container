@@ -1231,7 +1231,7 @@ def database_initialization_mssql(config, parsed_database_url):
 
 def database_initialization_mysql(config, parsed_database_url):
 
-    url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.16-2debian9_amd64.deb"
+    url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.20-1debian10_amd64.deb"
     filename = "/opt/senzing/g2/download/libmysqlclient.deb"
     libmysqlclient = "/opt/senzing/g2/lib/libmysqlclient.so.21.0.16"
     libmysqlclient_link = "/opt/senzing/g2/lib/libmysqlclient.so.21"
