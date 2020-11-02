@@ -957,7 +957,6 @@ def change_module_ini(config):
     etc_dir = config.get("etc_dir")
     new_database_url = config.get('g2_database_url_raw')
     engine_configuration_json = config.get('engine_configuration_json')
-    engine_configuration = json.loads(engine_configuration_json)
 
     # Read G2Module.ini.
 
@@ -982,8 +981,9 @@ def change_module_ini(config):
 
     # If configuration was passed in via SENZING_ENGINE_CONFIGURATION_JSON.
 
-    if  engine_configuration:
+    if  engine_configuration_json:
         logging.info(message_info(163, filename))
+        engine_configuration = json.loads(engine_configuration_json)
 
         config_parser['PIPELINE']['CONFIGPATH'] = engine_configuration.get('PIPELINE', {}).get("CONFIGPATH")
         config_parser['PIPELINE']['RESOURCEPATH'] = engine_configuration.get('PIPELINE', {}).get("RESOURCEPATH")
