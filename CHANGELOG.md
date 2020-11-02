@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2020-11-02
+
+### Added in 1.6.0
+
+- Support for `SENZING_ENGINE_CONFIGURATION_JSON`
+
 ## [1.5.11] - 2020-10-30
 
 ### Fixed in 1.5.11

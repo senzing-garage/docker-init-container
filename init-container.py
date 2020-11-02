@@ -30,9 +30,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.5.11"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.6.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-10-30'
+__updated__ = '2020-11-02'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -338,6 +338,7 @@ message_dictionary = {
     "160": "{0} - Copying {1} and modifying",
     "161": "{0} - Backup of current {1}",
     "162": "{0} - Creating directory",
+    "163": "{0} - Configuring for Senzing database cluster based on SENZING_ENGINE_CONFIGURATION_JSON",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
     "180": "Postgresql detected, installing default governor from {0} to {1}",
@@ -955,6 +956,8 @@ def change_module_ini(config):
 
     etc_dir = config.get("etc_dir")
     new_database_url = config.get('g2_database_url_raw')
+    engine_configuration_json = config.get('engine_configuration_json')
+    engine_configuration = json.loads(engine_configuration_json)
 
     # Read G2Module.ini.
 
@@ -976,6 +979,38 @@ def change_module_ini(config):
     config_parser.remove_option('SQL', 'G2CONFIGFILE')
     message = "Removed SQL.G2CONFIGFILE"
     logging.info(message_info(156, filename, message))
+
+    # If configuration was passed in via SENZING_ENGINE_CONFIGURATION_JSON.
+
+    if  engine_configuration:
+        logging.info(message_info(163, filename))
+
+        config_parser['PIPELINE']['CONFIGPATH'] = engine_configuration.get('PIPELINE', {}).get("CONFIGPATH")
+        config_parser['PIPELINE']['RESOURCEPATH'] = engine_configuration.get('PIPELINE', {}).get("RESOURCEPATH")
+        config_parser['PIPELINE']['SUPPORTPATH'] = engine_configuration.get('PIPELINE', {}).get("SUPPORTPATH")
+        config_parser['SQL']['CONNECTION'] = engine_configuration.get('SQL', {}).get("CONNECTION")
+
+        # Handle HYBRID configuration.
+
+        sql_backend = engine_configuration.get('SQL', {}).get("BACKEND")
+        if sql_backend:
+            config_parser['SQL']['BACKEND'] = sql_backend
+            try:
+                config_parser.add_section(sql_backend)
+            except:
+                pass
+            sql_backend_items = engine_configuration.get(sql_backend, {})
+            for key, value in sql_backend_items.items():
+                config_parser[sql_backend][key] = value
+            databases = list(set(sql_backend_items.values()))
+            for database in databases:
+                try:
+                    config_parser.add_section(database)
+                except:
+                    pass
+                database_data = engine_configuration.get(database, {})
+                for key, value in database_data.items():
+                    config_parser[database][key] = value
 
     # Write out contents.
 
