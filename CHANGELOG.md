@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2020-11-20
+
+### Added in 1.6.1
+
+- Support for `SENZING_GOVERNOR_POSTGRESQL_INSTALL`, a temporary env var only input that will install the Senzing postgresql governor if a governor does not exist. A workaround until issue #89 is fixed.
+
 ## [1.6.0] - 2020-11-02
 
 ### Added in 1.6.0
