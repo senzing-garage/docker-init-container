@@ -98,10 +98,6 @@ configuration_locator = {
         "env": "SENZING_ENGINE_CONFIGURATION_JSON",
         "cli": "engine-configuration-json"
     },
-    "install_postgresql_governor": {
-        "default": False,
-        "env": "SENZING_INSTALL_POSTGRESQL_GOVERNOR"
-    },
     "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
         "env": "SENZING_DATABASE_URL",
@@ -121,6 +117,10 @@ configuration_locator = {
         "default": 1001,
         "env": "SENZING_GID",
         "cli": "gid"
+    },
+    "governor_postgresql_install": {
+        "default": False,
+        "env": "SENZING_GOVERNOR_POSTGRESQL_INSTALL"
     },
     "sleep_time_in_seconds": {
         "default": 0,
@@ -612,7 +612,7 @@ def get_configuration(args):
         'enable_mysql',
         'enable_postgresql',
         'update_ini_files',
-        'install_postgresql_governor',
+        'governor_postgresql_install',
     ]
     for boolean in booleans:
         boolean_value = result.get(boolean)
@@ -1430,8 +1430,8 @@ def database_initialization(config):
 
     # Force install senzing postgresql governor if requested. Will only instal if one doesn't already exist (as normal)
     # NOTE this is a bandaid to work around issue https://github.com/Senzing/docker-init-container/issues/89
-    # When that is fixed, this section should be removed, along with the install_postgresql_governor parameter
-    if config.get('install_postgresql_governor'):
+    # When that is fixed, this section should be removed, along with the governor_postgresql_install parameter
+    if config.get('governor_postgresql_install'):
         install_senzing_postgresql_governor()
 
     return result
