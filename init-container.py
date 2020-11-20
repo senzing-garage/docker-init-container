@@ -98,6 +98,10 @@ configuration_locator = {
         "env": "SENZING_ENGINE_CONFIGURATION_JSON",
         "cli": "engine-configuration-json"
     },
+    "install_postgresql_governor": {
+        "default": False,
+        "env": "SENZING_INSTALL_POSTGRESQL_GOVERNOR"
+    },
     "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
         "env": "SENZING_DATABASE_URL",
@@ -606,8 +610,9 @@ def get_configuration(args):
         'enable_db2'
         'enable_mssql',
         'enable_mysql',
-        'enable_postgresql'
-        'update_ini_files'
+        'enable_postgresql',
+        'update_ini_files',
+        'install_postgresql_governor',
     ]
     for boolean in booleans:
         boolean_value = result.get(boolean)
@@ -1376,20 +1381,23 @@ def database_initialization_postgresql(config, parsed_database_url):
         else:
             logging.info(message_info(161, backup_odbcinst_filename, output_odbcinst_filename))
 
-    # If postgres, enable the postgres governor if one does not already exist.
-    if parsed_database_url['scheme'] == 'postgresql':
-        if not os.path.exists("/opt/senzing/g2/python/senzing_governor.py"):
-            governor_url = 'https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py'
-            governor_destination = '/opt/senzing/g2/python/senzing_governor.py'
-            logging.info(message_info(180, governor_url, governor_destination))
-            try:
-                urllib.request.urlretrieve(
-                    governor_url,
-                    governor_destination)
-            except urllib.error.URLError as err:
-                logging.warning(message_warning(301, governor_url, err))
-        else:
-            logging.info(message_info(181))
+    # Install senzing postgresql governor if it is not installed
+    install_senzing_postgresql_governor()
+
+
+def install_senzing_postgresql_governor():
+    if not os.path.exists("/opt/senzing/g2/python/senzing_governor.py"):
+        governor_url = 'https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py'
+        governor_destination = '/opt/senzing/g2/python/senzing_governor.py'
+        logging.info(message_info(180, governor_url, governor_destination))
+        try:
+            urllib.request.urlretrieve(
+                governor_url,
+                governor_destination)
+        except urllib.error.URLError as err:
+            logging.warning(message_warning(301, governor_url, err))
+    else:
+        logging.info(message_info(181))
 
 
 def database_initialization(config):
@@ -1419,6 +1427,12 @@ def database_initialization(config):
         result = database_initialization_mssql(config, parsed_database_url)
     else:
         logging.error(message_error(695, scheme, database_url))
+
+    # Force install senzing postgresql governor if requested. Will only instal if one doesn't already exist (as normal)
+    # NOTE this is a bandaid to work around issue https://github.com/Senzing/docker-init-container/issues/89
+    # When that is fixed, this section should be removed, along with the install_postgresql_governor parameter
+    if config.get('install_postgresql_governor'):
+        install_senzing_postgresql_governor()
 
     return result
 
