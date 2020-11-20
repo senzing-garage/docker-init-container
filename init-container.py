@@ -986,7 +986,7 @@ def change_module_ini(config):
 
     # If configuration was passed in via SENZING_ENGINE_CONFIGURATION_JSON.
 
-    if  engine_configuration_json:
+    if engine_configuration_json:
         logging.info(message_info(163, filename))
         engine_configuration = json.loads(engine_configuration_json)
 
