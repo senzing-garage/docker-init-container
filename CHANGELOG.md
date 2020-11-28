@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] - 2020-11-27
+
+### Added in 1.6.2
+
+- Added support for `SENZING_LICENSE_BASE64_ENCODED` so that Senzing `g2.lic` contents can be passed in and an `/etc/opt/senzing/g2.lic` file is created.
+
+### Removed in 1.6.2
+
+- Removed support for `SENZING_GOVERNOR_POSTGRESQL_INSTALL`, as setting `SENZING_ENABLE_POSTGRESQL` is a better approach.
+
 ## [1.6.1] - 2020-11-20
 
 ### Added in 1.6.1
