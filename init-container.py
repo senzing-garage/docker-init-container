@@ -31,9 +31,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.6.2"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.6.3"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-11-27'
+__updated__ = '2020-11-28'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -113,6 +113,11 @@ configuration_locator = {
         "default": "/opt/senzing/g2",
         "env": "SENZING_G2_DIR",
         "cli": "g2-dir"
+    },
+    "governor_url": {
+        "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py",
+        "env": "SENZING_GOVERNOR_URL",
+        "cli": "governor-url"
     },
     "gid": {
         "default": 1001,
@@ -347,8 +352,13 @@ message_dictionary = {
     "163": "{0} - Configuring for Senzing database cluster based on SENZING_ENGINE_CONFIGURATION_JSON",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
-    "180": "Postgresql detected, installing default governor from {0} to {1}",
-    "181": "Postgresql detected but using existing governor",
+    "180": "{0} - Postgresql detected.  Installing governor from {1}",
+    "181": "{0} - Postgresql detected. Using existing governor; no change.",
+    "182": "Initializing for SQLite",
+    "183": "Initializing for Db2",
+    "184": "Initializing for MS SQL",
+    "185": "Initializing for MySQL",
+    "186": "Initializing for PostgreSQL",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -370,6 +380,7 @@ message_dictionary = {
     "700": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
     "701": "Error '{0}' caused by {1} error '{2}'",
     "702": "Could not create '{0}' directory. Error: {1}",
+    "801": "SENZING_ENGINE_CONFIGURATION_JSON contains multiple database schemes: {0}",
     "886": "G2Engine.addRecord() bad return code: {0}; JSON: {1}",
     "888": "G2Engine.addRecord() G2ModuleNotInitialized: {0}; JSON: {1}",
     "889": "G2Engine.addRecord() G2ModuleGenericException: {0}; JSON: {1}",
@@ -532,6 +543,10 @@ def parse_database_url(original_senzing_database_url):
     # Return result.
 
     return result
+
+
+def parse_database_url_scheme(senzing_database_url):
+    return senzing_database_url.split(':')[0]
 
 # -----------------------------------------------------------------------------
 # Configuration
@@ -1178,7 +1193,11 @@ def delete_files(config):
             os.remove(file)
 
 
-def database_initialization_db2(config, parsed_database_url):
+def database_initialization_db2(config):
+    logging.info(message_info(183))
+
+    database_url = config.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
 
     input_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg.senzing-template"
     output_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg"
@@ -1234,7 +1253,11 @@ Servername = {hostname}
     return 0
 
 
-def database_initialization_mssql(config, parsed_database_url):
+def database_initialization_mssql(config):
+    logging.info(message_info(184))
+
+    database_url = config.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
 
     input_filename = "/etc/odbc.ini.mssql-template"
     output_filename = "/opt/microsoft/msodbcsql17/etc/odbc.ini"
@@ -1282,7 +1305,11 @@ def database_initialization_mssql(config, parsed_database_url):
             logging.info(message_info(161, backup_filename, output_filename))
 
 
-def database_initialization_mysql(config, parsed_database_url):
+def database_initialization_mysql(config):
+    logging.info(message_info(185))
+
+    database_url = config.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
 
     url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.20-1debian10_amd64.deb"
     filename = "/opt/senzing/g2/download/libmysqlclient.deb"
@@ -1323,7 +1350,11 @@ def database_initialization_mysql(config, parsed_database_url):
         os.symlink(libmysqlclient_filename, libmysqlclient_link)
 
 
-def database_initialization_postgresql(config, parsed_database_url):
+def database_initialization_postgresql(config):
+    logging.info(message_info(186))
+
+    database_url = config.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
 
     input_filename = "/etc/opt/senzing/odbc.ini.postgresql-template"
     output_filename = "/etc/opt/senzing/odbc.ini"
@@ -1396,49 +1427,83 @@ def database_initialization_postgresql(config, parsed_database_url):
 
     # Install senzing postgresql governor if it is not installed.
 
-    install_senzing_postgresql_governor()
+    install_senzing_postgresql_governor(config)
 
 
-def install_senzing_postgresql_governor():
-    if not os.path.exists("/opt/senzing/g2/python/senzing_governor.py"):
-        governor_url = 'https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py'
-        governor_destination = '/opt/senzing/g2/python/senzing_governor.py'
-        logging.info(message_info(180, governor_url, governor_destination))
+def install_senzing_postgresql_governor(config):
+
+    senzing_governor_path = "{0}/python/senzing_governor.py".format(config.get("g2_dir"))
+    if not os.path.exists(senzing_governor_path):
+        governor_url = config.get("governor_url")
+        logging.info(message_info(180, senzing_governor_path, governor_url))
         try:
             urllib.request.urlretrieve(
                 governor_url,
-                governor_destination)
+                senzing_governor_path)
         except urllib.error.URLError as err:
             logging.warning(message_warning(301, governor_url, err))
     else:
-        logging.info(message_info(181))
+        logging.info(message_info(181, senzing_governor_path))
 
 
 def database_initialization(config):
     ''' Given a canonical database URL, transform to the specific URL. '''
 
     result = ""
-    database_url = config.get('g2_database_url')
+
     enable_db2 = config.get('enable_db2')
     enable_mssql = config.get('enable_mssql')
     enable_mysql = config.get('enable_mysql')
     enable_postgresql = config.get('enable_postgresql')
 
+    # Find default database scheme.
+
+    database_url = config.get('g2_database_url')
     parsed_database_url = parse_database_url(database_url)
     scheme = parsed_database_url.get('scheme')
+
+    # If engine_configuration_json given, find the scheme and make sure all of the schemes are the same.
+
+    engine_configuration_json = config.get('engine_configuration_json')
+    if engine_configuration_json:
+        engine_configuration_dict = json.loads(engine_configuration_json)
+        hybrid = engine_configuration_dict.get('HYBRID', {})
+        database_keys = set(hybrid.values())
+
+        # Create list of database URLs.
+
+        database_urls = [engine_configuration_dict["SQL"]["CONNECTION"]]
+        for database_key in database_keys:
+            database_url = engine_configuration_dict.get(database_key, {}).get("DB_1", None)
+            if database_url:
+                database_urls.append(database_url)
+
+        # Collect schemes from database URLs.
+
+        schemes = []
+        for database_url in database_urls:
+            schemes.append(parse_database_url_scheme(database_url))
+
+        # Delete duplicate schemes and make sure there is only one scheme used.
+
+        schemes_set = set(schemes)
+        if len(schemes_set) == 1:
+            scheme = schemes[0]
+        else:
+            exit_error(801, schemes_set)
 
     # Format database URL for a particular database.
 
     if scheme in ['mysql'] or enable_mysql:
-        result = database_initialization_mysql(config, parsed_database_url)
+        result = database_initialization_mysql(config)
     elif scheme in ['postgresql'] or enable_postgresql:
-        result = database_initialization_postgresql(config, parsed_database_url)
+        result = database_initialization_postgresql(config)
     elif scheme in ['db2'] or enable_db2:
-        result = database_initialization_db2(config, parsed_database_url)
+        result = database_initialization_db2(config)
     elif scheme in ['sqlite3']:
-        pass
+        logging.info(message_info(182))
     elif scheme in ['mssql'] or enable_mssql:
-        result = database_initialization_mssql(config, parsed_database_url)
+        result = database_initialization_mssql(config)
     else:
         logging.error(message_error(695, scheme, database_url))
 
