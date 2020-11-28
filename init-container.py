@@ -6,8 +6,8 @@
 
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
-import urllib.request
 import argparse
+import base64
 import configparser
 import filecmp
 import json
@@ -21,6 +21,7 @@ import string
 import sys
 import time
 import urllib
+import urllib.request
 
 try:
     from G2Config import G2Config
@@ -30,9 +31,9 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.6.0"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.7.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-11-02'
+__updated__ = '2020-11-27'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -126,6 +127,11 @@ configuration_locator = {
         "default": 0,
         "env": "SENZING_SLEEP_TIME_IN_SECONDS",
         "cli": "sleep-time-in-seconds"
+    },
+    "license_base64_encoded": {
+        "default": None,
+        "env": "SENZING_LICENSE_BASE64_ENCODED",
+        "cli": "license-base64-encoded"
     },
     "subcommand": {
         "default": None,
@@ -1145,6 +1151,18 @@ def copy_files(config):
             shutil.copyfile(source_file, target_file)
 
 
+def create_g2_lic(config):
+
+    etc_dir = config.get("etc_dir")
+    license_base64_encoded = config.get('license_base64_encoded')
+
+    if license_base64_encoded:
+        output_file_name = "{0}/g2.lic".format(etc_dir)
+        logging.info(message_info(157, output_file_name))
+        with open(output_file_name, "wb") as output_file:
+            output_file.write(base64.b64decode(license_base64_encoded))
+
+
 def delete_files(config):
 
     # Get paths.
@@ -1556,6 +1574,10 @@ def do_initialize(args):
     change_directory_ownership(config)
     change_file_permissions(config)
 
+    # If requested, create /etc/opt/senzing/g2.lic
+
+    create_g2_lic(config)
+
     # Get Senzing resources.
 
     g2_config = get_g2_config(config)
@@ -1640,6 +1662,10 @@ def do_initialize_files(args):
 
     change_module_ini(config)
     change_project_ini(config)
+
+    # If requested, create /etc/opt/senzing/g2.lic
+
+    create_g2_lic(config)
 
     # Database specific operations.
 
