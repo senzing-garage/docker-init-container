@@ -1350,11 +1350,8 @@ def database_initialization_mysql(config):
         os.symlink(libmysqlclient_filename, libmysqlclient_link)
 
 
-def database_initialization_postgresql(config):
+def database_initialization_postgresql(config, database_urls):
     logging.info(message_info(186))
-
-    database_url = config.get('g2_database_url')
-    parsed_database_url = parse_database_url(database_url)
 
     input_filename = "/etc/opt/senzing/odbc.ini.postgresql-template"
     output_filename = "/etc/opt/senzing/odbc.ini"
@@ -1387,11 +1384,13 @@ def database_initialization_postgresql(config):
 
     # Create new file from input_filename template.
 
-    logging.info(message_info(160, output_filename, input_filename))
-    with open(input_filename, 'r') as in_file:
-        with open(output_filename, 'w') as out_file:
-            for line in in_file:
-                out_file.write(line.format(**parsed_database_url))
+    for database_url in database_urls:
+        logging.info(message_info(160, output_filename, input_filename))
+        if parse_database_url_scheme(database_url) in ['postgresql']:
+            with open(input_filename, 'r') as in_file:
+                with open(output_filename, 'a+') as out_file:
+                    for line in in_file:
+                        out_file.write(line.format(**parse_database_url(database_url)))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1461,6 +1460,7 @@ def database_initialization(config):
     database_url = config.get('g2_database_url')
     parsed_database_url = parse_database_url(database_url)
     scheme = parsed_database_url.get('scheme')
+    database_urls = [database_url]
 
     # If engine_configuration_json given, find the scheme and make sure all of the schemes are the same.
 
@@ -1497,7 +1497,7 @@ def database_initialization(config):
     if scheme in ['mysql'] or enable_mysql:
         result = database_initialization_mysql(config)
     elif scheme in ['postgresql'] or enable_postgresql:
-        result = database_initialization_postgresql(config)
+        result = database_initialization_postgresql(config, database_urls)
     elif scheme in ['db2'] or enable_db2:
         result = database_initialization_db2(config)
     elif scheme in ['sqlite3']:
