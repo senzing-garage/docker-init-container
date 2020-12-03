@@ -1256,9 +1256,6 @@ Servername = {hostname}
 def database_initialization_mssql(config, database_urls):
     logging.info(message_info(184))
 
-    database_url = config.get('g2_database_url')
-    parsed_database_url = parse_database_url(database_url)
-
     input_filename = "/etc/odbc.ini.mssql-template"
     output_filename = "/opt/microsoft/msodbcsql17/etc/odbc.ini"
     backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
