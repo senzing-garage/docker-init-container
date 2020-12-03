@@ -1384,13 +1384,15 @@ def database_initialization_postgresql(config, database_urls):
 
     # Create new file from input_filename template.
 
+    with open(input_filename, 'r') as in_file:
+        template_file = in_file.readlines()
+
     for database_url in database_urls:
         logging.info(message_info(160, output_filename, input_filename))
         if parse_database_url_scheme(database_url) in ['postgresql']:
-            with open(input_filename, 'r') as in_file:
-                with open(output_filename, 'a+') as out_file:
-                    for line in in_file:
-                        out_file.write(line.format(**parse_database_url(database_url)))
+            with open(output_filename, 'a+') as out_file:
+                for line in template_file:
+                    out_file.write(line.format(**parse_database_url(database_url)))
 
     # Remove backup file if it is the same as the new file.
 
