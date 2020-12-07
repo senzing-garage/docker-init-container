@@ -1236,7 +1236,7 @@ def database_initialization_db2(config, database_urls):
     doc.appendChild(config_node)
 
     with open(output_filename, "w") as xml_file:
-        doc.writexml(xml_file)
+        xml_file.write(doc.toprettyxml())
 
     # Remove backup file if it is the same as the new file.
 
