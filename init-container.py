@@ -1367,81 +1367,8 @@ def database_initialization_mysql(config):
         os.symlink(libmysqlclient_filename, libmysqlclient_link)
 
 
-def database_initialization_postgresql(config, database_urls):
+def database_initialization_postgresql(config):
     logging.info(message_info(186))
-
-    input_filename = "/etc/opt/senzing/odbc.ini.postgresql-template"
-    output_filename = "/etc/opt/senzing/odbc.ini"
-    backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
-
-    # Detect error and exit, if needed.
-
-    if not os.path.exists(input_filename):
-        logging.warning(message_warning(510, input_filename))
-        input_filename = "/tmp/odbc.ini.postgresql-template"
-        with open(input_filename, 'w') as in_file:
-            logging.info(message_warning(157, input_filename))
-            in_file.write(database_initialization_postgresql_odbc_ini_postgresql_template.__doc__)
-
-    # Backup existing file.
-
-    if os.path.exists(output_filename):
-        os.rename(output_filename, backup_filename)
-
-    # Create output directory.
-
-    output_directory = os.path.dirname(output_filename)
-    logging.info(message_info(162, output_directory))
-
-    try:
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
-    except PermissionError as err:
-        exit_error(702, output_directory, err)
-
-    # Create new file from input_filename template.
-
-    with open(input_filename, 'r') as in_file:
-        template_file = in_file.readlines()
-
-    for database_url in database_urls:
-        logging.info(message_info(160, output_filename, input_filename))
-        if parse_database_url_scheme(database_url) in ['postgresql']:
-            with open(output_filename, 'a+') as out_file:
-                for line in template_file:
-                    out_file.write(line.format(**parse_database_url(database_url)))
-
-    # Remove backup file if it is the same as the new file.
-
-    if os.path.exists(backup_filename):
-        if filecmp.cmp(output_filename, backup_filename):
-            os.remove(backup_filename)
-        else:
-            logging.info(message_info(161, backup_filename, output_filename))
-
-    # Copy odbcinst.ini from /etc to /etc/opt/senzing
-
-    input_odbcinst_filename = "/etc/odbcinst.ini"
-    output_odbcinst_filename = "/etc/opt/senzing/odbcinst.ini"
-    backup_odbcinst_filename = "{0}.{1}".format(output_odbcinst_filename, int(time.time()))
-
-    # Backup existing file.
-
-    if os.path.exists(output_odbcinst_filename):
-        os.rename(output_odbcinst_filename, backup_odbcinst_filename)
-
-    # Copy odbcinst.ini to /etc/opt/senzing.
-
-    if os.path.exists(input_odbcinst_filename):
-        shutil.copyfile(input_odbcinst_filename, output_odbcinst_filename)
-
-    # Remove backup file if it is the same as the new file.
-
-    if os.path.exists(backup_odbcinst_filename):
-        if filecmp.cmp(output_odbcinst_filename, backup_odbcinst_filename):
-            os.remove(backup_odbcinst_filename)
-        else:
-            logging.info(message_info(161, backup_odbcinst_filename, output_odbcinst_filename))
 
     # Install senzing postgresql governor if it is not installed.
 
@@ -1516,7 +1443,7 @@ def database_initialization(config):
     if scheme in ['mysql'] or enable_mysql:
         result = database_initialization_mysql(config)
     elif scheme in ['postgresql'] or enable_postgresql:
-        result = database_initialization_postgresql(config, database_urls)
+        result = database_initialization_postgresql(config)
     elif scheme in ['db2'] or enable_db2:
         result = database_initialization_db2(config, database_urls)
     elif scheme in ['sqlite3']:
