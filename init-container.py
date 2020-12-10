@@ -1258,17 +1258,6 @@ Server = {hostname},{port}
 """
     return 0
 
-
-def database_initialization_postgresql_odbc_ini_postgresql_template():
-    """[{schema}]
-Database = {schema}
-Driver = PostgreSQL Unicode
-Port = {port}
-Servername = {hostname}
-"""
-    return 0
-
-
 def database_initialization_mssql(config, database_urls):
     logging.info(message_info(184))
 
