@@ -1251,8 +1251,8 @@ def database_initialization_db2(config, database_urls):
 
 def database_initialization_mssql_odbc_ini_mssql_template():
     """[{schema}]
-Database = {schema}
-Description = Senzing MS SQL database for {schema}
+Database = G2
+Description = Senzing MS SQL database for G2
 Driver = ODBC Driver 17 for SQL Server
 Server = {hostname},{port}
 """
