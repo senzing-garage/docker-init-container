@@ -22,7 +22,6 @@ import sys
 import time
 import urllib
 import urllib.request
-import xml.dom.minidom
 
 try:
     from G2Config import G2Config
@@ -1194,49 +1193,34 @@ def delete_files(config):
             os.remove(file)
 
 
-def database_initialization_db2(config, database_urls):
+def database_initialization_db2(config):
     logging.info(message_info(183))
 
+    database_url = config.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
+
+    input_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg.senzing-template"
     output_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg"
     backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
+
+    # Detect error and exit, if needed.
+
+    if not os.path.exists(input_filename):
+        logging.warning(message_warning(510, input_filename))
+        return
 
     # Backup existing file.
 
     if os.path.exists(output_filename):
         os.rename(output_filename, backup_filename)
 
-    # Create new file
-    doc = xml.dom.minidom.Document();
-    config_node = doc.createElement('configuration')
-    dsn_col_node = doc.createElement('dsncollection')
-    dbs_node = doc.createElement('databases')
+    # Create new file from input_filename template.
 
-    for database_url in database_urls:
-        parsed_database_url = parse_database_url(database_url)
-        dsn_node = doc.createElement('dsn')
-        dsn_node.setAttribute("alias", parsed_database_url["schema"])
-        dsn_node.setAttribute("name", parsed_database_url["schema"])
-        dsn_node.setAttribute("host", parsed_database_url["hostname"])
-        dsn_node.setAttribute("port", parsed_database_url["port"])
-        dsn_col_node.appendChild(dsn_node)
-
-        db_node = doc.createElement('database')
-        db_node.setAttribute("name", parsed_database_url["schema"])
-        db_node.setAttribute("host", parsed_database_url["hostname"])
-        db_node.setAttribute("port", parsed_database_url["port"])
-        dbs_node.appendChild(db_node)
-
-        param_node = doc.createElement('parameter')
-        param_node.setAttribute("name", "CommProtocol")
-        param_node.setAttribute("name", "TCPIP")
-        db_node.appendChild(param_node)
-
-    config_node.appendChild(dbs_node)
-    config_node.appendChild(dsn_col_node)
-    doc.appendChild(config_node)
-
-    with open(output_filename, "w") as xml_file:
-        xml_file.write(doc.toprettyxml())
+    logging.info(message_info(160, output_filename, input_filename))
+    with open(input_filename, 'r') as in_file:
+        with open(output_filename, 'w') as out_file:
+            for line in in_file:
+                out_file.write(line.format(**parsed_database_url))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1434,7 +1418,7 @@ def database_initialization(config):
     elif scheme in ['postgresql'] or enable_postgresql:
         result = database_initialization_postgresql(config)
     elif scheme in ['db2'] or enable_db2:
-        result = database_initialization_db2(config, database_urls)
+        result = database_initialization_db2(config)
     elif scheme in ['sqlite3']:
         logging.info(message_info(182))
     elif scheme in ['mssql'] or enable_mssql:
