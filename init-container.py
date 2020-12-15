@@ -1263,7 +1263,7 @@ Server = {hostname},{port}
     return 0
 
 
-def database_initialization_mssql(config, database_urls):
+def database_initialization_mssql(config):
     logging.info(message_info(184))
 
     input_filename = "/etc/odbc.ini.mssql-template"
@@ -1297,15 +1297,11 @@ def database_initialization_mssql(config, database_urls):
 
     # Create new file from input_filename template.
 
+    logging.info(message_info(160, output_filename, input_filename))
     with open(input_filename, 'r') as in_file:
-        template_file = in_file.readlines()
-
-    for database_url in database_urls:
-        logging.info(message_info(160, output_filename, input_filename))
-        if parse_database_url_scheme(database_url) in ['mssql']:
-            with open(output_filename, 'a+') as out_file:
-                for line in template_file:
-                    out_file.write(line.format(**parse_database_url(database_url)))
+        with open(output_filename, 'w') as out_file:
+            for line in in_file:
+                out_file.write(line.format(**parsed_database_url))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1443,7 +1439,7 @@ def database_initialization(config):
     elif scheme in ['sqlite3']:
         logging.info(message_info(182))
     elif scheme in ['mssql'] or enable_mssql:
-        result = database_initialization_mssql(config, database_urls)
+        result = database_initialization_mssql(config)
     else:
         logging.error(message_error(695, scheme, database_url))
 
