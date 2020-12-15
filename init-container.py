@@ -59,6 +59,11 @@ configuration_locator = {
         "env": "SENZING_DATA_DIR",
         "cli": "data-dir"
     },
+    "db2dsdriver_cfg_contents": {
+        "default": None,
+        "env": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
+        "cli": "db2dsdriver-cfg-contents"
+    },
     "debug": {
         "default": False,
         "env": "SENZING_DEBUG",
@@ -237,6 +242,11 @@ def get_parser():
                 "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
                 "help": "Advanced Senzing engine configuration. Default: none"
             },
+            "--db2dsdriver-cfg-contents": {
+                "dest": "db2dsdriver_cfg_contents",
+                "metavar": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
+                "help": "Contents of the Db2 db2dsdriver.cfg file for advanced Db2 configurations of Senzing Clustering. Default: none"
+            },
         },
         "enable": {
             "--enable-db2": {
@@ -380,6 +390,7 @@ message_dictionary = {
     "700": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
     "701": "Error '{0}' caused by {1} error '{2}'",
     "702": "Could not create '{0}' directory. Error: {1}",
+    "703": "SENZING_ENGINE_CONFIGURATION_JSON specified but not SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS. If the Senzing engine config is specified, the contents of db2dsdriver.cfg must also be provided.",
     "801": "SENZING_ENGINE_CONFIGURATION_JSON contains multiple database schemes: {0}",
     "886": "G2Engine.addRecord() bad return code: {0}; JSON: {1}",
     "888": "G2Engine.addRecord() G2ModuleNotInitialized: {0}; JSON: {1}",
@@ -1214,13 +1225,22 @@ def database_initialization_db2(config):
     if os.path.exists(output_filename):
         os.rename(output_filename, backup_filename)
 
-    # Create new file from input_filename template.
+    # Create new file from input_filename template. If engine_configuration_json is specified then
+    # use engine_configuration_json to create db2dsdriver.cfg
 
-    logging.info(message_info(160, output_filename, input_filename))
-    with open(input_filename, 'r') as in_file:
+    if config.get('engine_configuration_json'):
+        db2dsdriver_contents = config.get('db2dsdriver_cfg_contents')
+        if db2dsdriver_contents is None:
+            exit_error(703)
+
         with open(output_filename, 'w') as out_file:
-            for line in in_file:
-                out_file.write(line.format(**parsed_database_url))
+            out_file.write(db2dsdriver_contents)
+    else:
+        logging.info(message_info(160, output_filename, input_filename))
+        with open(input_filename, 'r') as in_file:
+            with open(output_filename, 'w') as out_file:
+                for line in in_file:
+                    out_file.write(line.format(**parsed_database_url))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1230,8 +1250,8 @@ def database_initialization_db2(config):
         else:
             logging.info(message_info(161, backup_filename, output_filename))
 
-# The following method is just a docstring for use in creating a template file.
 
+# The following method is just a docstring for use in creating a template file.
 
 def database_initialization_mssql_odbc_ini_mssql_template():
     """[{schema}]
@@ -1241,6 +1261,7 @@ Driver = ODBC Driver 17 for SQL Server
 Server = {hostname},{port}
 """
     return 0
+
 
 def database_initialization_mssql(config, database_urls):
     logging.info(message_info(184))
