@@ -139,6 +139,11 @@ configuration_locator = {
         "env": "SENZING_LICENSE_BASE64_ENCODED",
         "cli": "license-base64-encoded"
     },
+    "mssql_odbc_ini_contents": {
+        "default": None,
+        "env": "SENZING_OPT_MICROSOFT_MSODBCSQL17_ETC_ODBC_INI_CONTENTS",
+        "cli": "mssql-odbc-ini-contents"
+    },
     "subcommand": {
         "default": None,
         "env": "SENZING_SUBCOMMAND",
@@ -245,7 +250,12 @@ def get_parser():
             "--db2dsdriver-cfg-contents": {
                 "dest": "db2dsdriver_cfg_contents",
                 "metavar": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
-                "help": "Contents of the Db2 db2dsdriver.cfg file for advanced Db2 configurations of Senzing Clustering. Default: none"
+                "help": "Contents of the Db2 db2dsdriver.cfg file for advanced Db2 configurations or Senzing Clustering. Default: none"
+            },
+            "--mssql-odbc-ini-contents": {
+                "dest": "mssql_odbc_ini_contents",
+                "metavar": "SENZING_OPT_MICROSOFT_MSODBCSQL17_ETC_ODBC_INI_CONTENTS",
+                "help": "Contents of the odbc.ini file when used with mssql. Default: none"
             },
         },
         "enable": {
@@ -391,6 +401,7 @@ message_dictionary = {
     "701": "Error '{0}' caused by {1} error '{2}'",
     "702": "Could not create '{0}' directory. Error: {1}",
     "703": "SENZING_ENGINE_CONFIGURATION_JSON specified but not SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS. If the Senzing engine config is specified, the contents of db2dsdriver.cfg must also be provided.",
+    "704": "SENZING_ENGINE_CONFIGURATION_JSON specified but not SENZING_OPT_MICROSOFT_MSODBCSQL17_ETC_ODBC_INI_CONTENTS. If the Senzing engine config is specified, the contents of odbc.ini must also be provided.",
     "801": "SENZING_ENGINE_CONFIGURATION_JSON contains multiple database schemes: {0}",
     "886": "G2Engine.addRecord() bad return code: {0}; JSON: {1}",
     "888": "G2Engine.addRecord() G2ModuleNotInitialized: {0}; JSON: {1}",
@@ -1266,6 +1277,9 @@ Server = {hostname},{port}
 def database_initialization_mssql(config):
     logging.info(message_info(184))
 
+    database_url = config.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
+
     input_filename = "/etc/odbc.ini.mssql-template"
     output_filename = "/opt/microsoft/msodbcsql17/etc/odbc.ini"
     backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
@@ -1281,6 +1295,7 @@ def database_initialization_mssql(config):
 
     # Backup existing file.
 
+
     if os.path.exists(output_filename):
         os.rename(output_filename, backup_filename)
 
@@ -1295,13 +1310,22 @@ def database_initialization_mssql(config):
     except PermissionError as err:
         exit_error(702, output_directory, err)
 
-    # Create new file from input_filename template.
+    # Create new file from input_filename template. If engine_configuration_json is specified then
+    # use mssql_odbc_ini_contents to create osbc.ini
 
-    logging.info(message_info(160, output_filename, input_filename))
-    with open(input_filename, 'r') as in_file:
+    if config.get('engine_configuration_json'):
+        odbc_ini_contents = config.get('mssql_odbc_ini_contents')
+        if odbc_ini_contents is None:
+            exit_error(704)
+
         with open(output_filename, 'w') as out_file:
-            for line in in_file:
-                out_file.write(line.format(**parsed_database_url))
+            out_file.write(odbc_ini_contents)
+    else:
+        logging.info(message_info(160, output_filename, input_filename))
+        with open(input_filename, 'r') as in_file:
+            with open(output_filename, 'w') as out_file:
+                for line in in_file:
+                    out_file.write(line.format(**parsed_database_url))
 
     # Remove backup file if it is the same as the new file.
 
