@@ -1295,7 +1295,6 @@ def database_initialization_mssql(config):
 
     # Backup existing file.
 
-
     if os.path.exists(output_filename):
         os.rename(output_filename, backup_filename)
 
