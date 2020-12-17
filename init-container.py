@@ -59,6 +59,11 @@ configuration_locator = {
         "env": "SENZING_DATA_DIR",
         "cli": "data-dir"
     },
+    "db2dsdriver_cfg_contents": {
+        "default": None,
+        "env": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
+        "cli": "db2dsdriver-cfg-contents"
+    },
     "debug": {
         "default": False,
         "env": "SENZING_DEBUG",
@@ -133,6 +138,11 @@ configuration_locator = {
         "default": None,
         "env": "SENZING_LICENSE_BASE64_ENCODED",
         "cli": "license-base64-encoded"
+    },
+    "mssql_odbc_ini_contents": {
+        "default": None,
+        "env": "SENZING_OPT_MICROSOFT_MSODBCSQL17_ETC_ODBC_INI_CONTENTS",
+        "cli": "mssql-odbc-ini-contents"
     },
     "subcommand": {
         "default": None,
@@ -236,6 +246,16 @@ def get_parser():
                 "dest": "engine_configuration_json",
                 "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
                 "help": "Advanced Senzing engine configuration. Default: none"
+            },
+            "--db2dsdriver-cfg-contents": {
+                "dest": "db2dsdriver_cfg_contents",
+                "metavar": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
+                "help": "Contents of the Db2 db2dsdriver.cfg file for advanced Db2 configurations or Senzing Clustering. Default: none"
+            },
+            "--mssql-odbc-ini-contents": {
+                "dest": "mssql_odbc_ini_contents",
+                "metavar": "SENZING_OPT_MICROSOFT_MSODBCSQL17_ETC_ODBC_INI_CONTENTS",
+                "help": "Contents of the odbc.ini file when used with mssql. Default: none"
             },
         },
         "enable": {
@@ -380,6 +400,8 @@ message_dictionary = {
     "700": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}E",
     "701": "Error '{0}' caused by {1} error '{2}'",
     "702": "Could not create '{0}' directory. Error: {1}",
+    "703": "SENZING_ENGINE_CONFIGURATION_JSON specified but not SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS. If the Senzing engine config is specified, the contents of db2dsdriver.cfg must also be provided.",
+    "704": "SENZING_ENGINE_CONFIGURATION_JSON specified but not SENZING_OPT_MICROSOFT_MSODBCSQL17_ETC_ODBC_INI_CONTENTS. If the Senzing engine config is specified, the contents of odbc.ini must also be provided.",
     "801": "SENZING_ENGINE_CONFIGURATION_JSON contains multiple database schemes: {0}",
     "886": "G2Engine.addRecord() bad return code: {0}; JSON: {1}",
     "888": "G2Engine.addRecord() G2ModuleNotInitialized: {0}; JSON: {1}",
@@ -1214,13 +1236,22 @@ def database_initialization_db2(config):
     if os.path.exists(output_filename):
         os.rename(output_filename, backup_filename)
 
-    # Create new file from input_filename template.
+    # Create new file from input_filename template. If engine_configuration_json is specified then
+    # use engine_configuration_json to create db2dsdriver.cfg
 
-    logging.info(message_info(160, output_filename, input_filename))
-    with open(input_filename, 'r') as in_file:
+    if config.get('engine_configuration_json'):
+        db2dsdriver_contents = config.get('db2dsdriver_cfg_contents')
+        if db2dsdriver_contents is None:
+            exit_error(703)
+
         with open(output_filename, 'w') as out_file:
-            for line in in_file:
-                out_file.write(line.format(**parsed_database_url))
+            out_file.write(db2dsdriver_contents)
+    else:
+        logging.info(message_info(160, output_filename, input_filename))
+        with open(input_filename, 'r') as in_file:
+            with open(output_filename, 'w') as out_file:
+                for line in in_file:
+                    out_file.write(line.format(**parsed_database_url))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1230,25 +1261,15 @@ def database_initialization_db2(config):
         else:
             logging.info(message_info(161, backup_filename, output_filename))
 
-# The following method is just a docstring for use in creating a template file.
 
+# The following method is just a docstring for use in creating a template file.
 
 def database_initialization_mssql_odbc_ini_mssql_template():
     """[{schema}]
-Database = {schema}
-Description = Senzing MS SQL database for {schema}
+Database = G2
+Description = Senzing MS SQL database for G2
 Driver = ODBC Driver 17 for SQL Server
 Server = {hostname},{port}
-"""
-    return 0
-
-
-def database_initialization_postgresql_odbc_ini_postgresql_template():
-    """[{schema}]
-Database = {schema}
-Driver = PostgreSQL Unicode
-Port = {port}
-Servername = {hostname}
 """
     return 0
 
@@ -1288,13 +1309,22 @@ def database_initialization_mssql(config):
     except PermissionError as err:
         exit_error(702, output_directory, err)
 
-    # Create new file from input_filename template.
+    # Create new file from input_filename template. If engine_configuration_json is specified then
+    # use mssql_odbc_ini_contents to create osbc.ini
 
-    logging.info(message_info(160, output_filename, input_filename))
-    with open(input_filename, 'r') as in_file:
+    if config.get('engine_configuration_json'):
+        odbc_ini_contents = config.get('mssql_odbc_ini_contents')
+        if odbc_ini_contents is None:
+            exit_error(704)
+
         with open(output_filename, 'w') as out_file:
-            for line in in_file:
-                out_file.write(line.format(**parsed_database_url))
+            out_file.write(odbc_ini_contents)
+    else:
+        logging.info(message_info(160, output_filename, input_filename))
+        with open(input_filename, 'r') as in_file:
+            with open(output_filename, 'w') as out_file:
+                for line in in_file:
+                    out_file.write(line.format(**parsed_database_url))
 
     # Remove backup file if it is the same as the new file.
 
@@ -1353,78 +1383,6 @@ def database_initialization_mysql(config):
 def database_initialization_postgresql(config):
     logging.info(message_info(186))
 
-    database_url = config.get('g2_database_url')
-    parsed_database_url = parse_database_url(database_url)
-
-    input_filename = "/etc/opt/senzing/odbc.ini.postgresql-template"
-    output_filename = "/etc/opt/senzing/odbc.ini"
-    backup_filename = "{0}.{1}".format(output_filename, int(time.time()))
-
-    # Detect error and exit, if needed.
-
-    if not os.path.exists(input_filename):
-        logging.warning(message_warning(510, input_filename))
-        input_filename = "/tmp/odbc.ini.postgresql-template"
-        with open(input_filename, 'w') as in_file:
-            logging.info(message_warning(157, input_filename))
-            in_file.write(database_initialization_postgresql_odbc_ini_postgresql_template.__doc__)
-
-    # Backup existing file.
-
-    if os.path.exists(output_filename):
-        os.rename(output_filename, backup_filename)
-
-    # Create output directory.
-
-    output_directory = os.path.dirname(output_filename)
-    logging.info(message_info(162, output_directory))
-
-    try:
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
-    except PermissionError as err:
-        exit_error(702, output_directory, err)
-
-    # Create new file from input_filename template.
-
-    logging.info(message_info(160, output_filename, input_filename))
-    with open(input_filename, 'r') as in_file:
-        with open(output_filename, 'w') as out_file:
-            for line in in_file:
-                out_file.write(line.format(**parsed_database_url))
-
-    # Remove backup file if it is the same as the new file.
-
-    if os.path.exists(backup_filename):
-        if filecmp.cmp(output_filename, backup_filename):
-            os.remove(backup_filename)
-        else:
-            logging.info(message_info(161, backup_filename, output_filename))
-
-    # Copy odbcinst.ini from /etc to /etc/opt/senzing
-
-    input_odbcinst_filename = "/etc/odbcinst.ini"
-    output_odbcinst_filename = "/etc/opt/senzing/odbcinst.ini"
-    backup_odbcinst_filename = "{0}.{1}".format(output_odbcinst_filename, int(time.time()))
-
-    # Backup existing file.
-
-    if os.path.exists(output_odbcinst_filename):
-        os.rename(output_odbcinst_filename, backup_odbcinst_filename)
-
-    # Copy odbcinst.ini to /etc/opt/senzing.
-
-    if os.path.exists(input_odbcinst_filename):
-        shutil.copyfile(input_odbcinst_filename, output_odbcinst_filename)
-
-    # Remove backup file if it is the same as the new file.
-
-    if os.path.exists(backup_odbcinst_filename):
-        if filecmp.cmp(output_odbcinst_filename, backup_odbcinst_filename):
-            os.remove(backup_odbcinst_filename)
-        else:
-            logging.info(message_info(161, backup_odbcinst_filename, output_odbcinst_filename))
-
     # Install senzing postgresql governor if it is not installed.
 
     install_senzing_postgresql_governor(config)
@@ -1461,6 +1419,7 @@ def database_initialization(config):
     database_url = config.get('g2_database_url')
     parsed_database_url = parse_database_url(database_url)
     scheme = parsed_database_url.get('scheme')
+    database_urls = [database_url]
 
     # If engine_configuration_json given, find the scheme and make sure all of the schemes are the same.
 
