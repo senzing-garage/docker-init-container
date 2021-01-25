@@ -1111,7 +1111,19 @@ def copy_files(config):
 
     # Files to copy.
 
-    template_file_names = [
+    template_file_names_2_0 = [
+        "cfgVariant.json",
+        "customOn.txt",
+        "defaultGNRCP.config",
+        "g2config.json",
+        "G2Project.ini",
+        "customGn.txt",
+        "customSn.txt",
+        "G2Module.ini",
+        "stb.config",
+    ]
+
+    template_file_names_1_x = [
         "cfgVariant.json.template",
         "customOn.txt.template",
         "defaultGNRCP.config.template",
@@ -1130,6 +1142,15 @@ def copy_files(config):
             "source_file": "{0}/sqlite/G2C.db".format(var_dir),
             "target_file": "{0}/sqlite/G2C.db.template".format(var_dir),
         }, {
+            "source_file": "{0}/resources/templates/G2C.db".format(g2_dir),
+            "target_file": "{0}/sqlite/G2C.db".format(var_dir),
+        }, {
+            "source_file": "{0}/resources/templates/G2C.db".format(g2_dir),
+            "target_file": "{0}/sqlite/G2C_LIBFEAT.db".format(var_dir),
+        }, {
+            "source_file": "{0}/resources/templates/G2C.db".format(g2_dir),
+            "target_file": "{0}/sqlite/G2C_RES.db".format(var_dir),
+        }, {
             "source_file": "{0}/resources/templates/G2C.db.template".format(g2_dir),
             "target_file": "{0}/sqlite/G2C.db".format(var_dir),
         }, {
@@ -1143,7 +1164,17 @@ def copy_files(config):
 
     # Add files from {resource_dir}/templates
 
-    for template_file_name in template_file_names:
+    for template_file_name in template_file_names_2_0:
+
+        # Handle files from 2.0+
+
+        from_templates = {
+            "source_file": "{0}/resources/templates/{1}".format(g2_dir, template_file_name),
+            "target_file": "{0}/{1}".format(etc_dir, template_file_name),
+        }
+        files.append(from_templates)
+
+    for template_file_name in template_file_names_1_x:
 
         # Handle files from 1.11.
 
@@ -1154,7 +1185,7 @@ def copy_files(config):
         }
         files.append(from_etc)
 
-        # Handle files from 1.12+.
+        # Handle files from 1.12 - 1.15.
 
         from_templates = {
             "source_file": "{0}/resources/templates/{1}".format(g2_dir, template_file_name),
