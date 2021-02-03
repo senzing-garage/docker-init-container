@@ -1016,6 +1016,19 @@ def change_module_ini(config):
         message = "Changed SQL.CONNECTION to {0}".format(new_database_url)
         logging.info(message_info(156, filename, message))
 
+    # Update PIPELINE entires - These are hard coded because they are always the same inside the conainter, but can be overridden by SENZING_ENGINE_CONFIGURATION_JSON
+    config_parser['PIPELINE']['SUPPORTPATH'] = '/opt/senzing/data'
+    message = "Changed PIPELINE.SUPPORTPATH to /opt/senzing/data"
+    logging.info(message_info(156, filename, message))
+
+    config_parser['PIPELINE']['CONFIGPATH'] = '/etc/opt/senzing'
+    message = "Changed PIPELINE.CONFIGPATH to /etc/opt/senzing"
+    logging.info(message_info(156, filename, message))
+
+    config_parser['PIPELINE']['RESOURCEPATH'] = '/opt/senzing/g2/resources'
+    message = "Changed PIPELINE.RESOURCEPATH to /opt/senzing/g2/resources"
+    logging.info(message_info(156, filename, message))
+
     # Remove SQL.G2CONFIGFILE option.
 
     config_parser.remove_option('SQL', 'G2CONFIGFILE')
