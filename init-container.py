@@ -31,7 +31,7 @@ except ImportError:
     pass
 
 __all__ = []
-__version__ = "1.6.3"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.6.8"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
 __updated__ = '2021-03-16'
 
@@ -1246,20 +1246,13 @@ def create_g2_lic(config):
 
 def create_g2config_gtc(config):
 
-    g2_config_gtc = config.get('g2_config_gtc')
-    if g2_config_gtc is None:
-        return
-
     etc_dir = config.get("etc_dir")
-
-    # Read G2Project.ini.
-
     filename = "{0}/G2Config.gtc".format(etc_dir)
-
-    # Write out contents.
-
+    g2_config_gtc = config.get('g2_config_gtc')
     with open(filename, 'w') as output_file:
-        output_file.write(g2_config_gtc)
+        if g2_config_gtc is not None:
+            output_file.write(g2_config_gtc)
+    logging.info(message_info(157, filename))
 
 
 def delete_files(config):
