@@ -33,7 +33,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.6.3"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2020-11-28'
+__updated__ = '2021-03-16'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -103,6 +103,11 @@ configuration_locator = {
         "default": None,
         "env": "SENZING_ENGINE_CONFIGURATION_JSON",
         "cli": "engine-configuration-json"
+    },
+    "g2_config_gtc": {
+        "default": None,
+        "env": "SENZING_G2CONFIG_GTC",
+        "cli": "g2config-gtc"
     },
     "g2_database_url": {
         "default": "sqlite3://na:na@/var/opt/senzing/sqlite/G2C.db",
@@ -1239,6 +1244,24 @@ def create_g2_lic(config):
             output_file.write(base64.b64decode(license_base64_encoded))
 
 
+def create_g2config_gtc(config):
+
+    g2_config_gtc = config.get('g2_config_gtc')
+    if g2_config_gtc is None:
+        return
+
+    etc_dir = config.get("etc_dir")
+
+    # Read G2Project.ini.
+
+    filename = "{0}/G2Config.gtc".format(etc_dir)
+
+    # Write out contents.
+
+    with open(filename, 'w') as output_file:
+        output_file.write(g2_config_gtc)
+
+
 def delete_files(config):
 
     # Get paths.
@@ -1305,8 +1328,8 @@ def database_initialization_db2(config):
         else:
             logging.info(message_info(161, backup_filename, output_filename))
 
-
 # The following method is just a docstring for use in creating a template file.
+
 
 def database_initialization_mssql_odbc_ini_mssql_template():
     """[{schema}]
@@ -1636,6 +1659,10 @@ def do_initialize(args):
 
     create_g2_lic(config)
 
+    # If requested, create /etc/opt/senzing/G2Config.gtc
+
+    create_g2config_gtc(config)
+
     # Get Senzing resources.
 
     g2_config = get_g2_config(config)
@@ -1724,6 +1751,10 @@ def do_initialize_files(args):
     # If requested, create /etc/opt/senzing/g2.lic
 
     create_g2_lic(config)
+
+    # If requested, create /etc/opt/senzing/G2Config.gtc
+
+    create_g2config_gtc(config)
 
     # Database specific operations.
 
