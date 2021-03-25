@@ -1013,65 +1013,43 @@ def change_module_ini(config):
     config_parser.optionxform = str  # Maintain case of keys.
     config_parser.read(filename)
 
-    # Check SQL.CONNECTION.
-
-    old_database_url = config_parser.get('SQL', 'CONNECTION')
-    if new_database_url != old_database_url:
-        config_parser['SQL']['CONNECTION'] = new_database_url
-        message = "Changed SQL.CONNECTION to {0}".format(new_database_url)
-        logging.info(message_info(156, filename, message))
-
-    # Update PIPELINE entires - These are hard coded because they are always the same inside the conainter, but can be overridden by SENZING_ENGINE_CONFIGURATION_JSON
-    config_parser['PIPELINE']['SUPPORTPATH'] = '/opt/senzing/data'
-    message = "Changed PIPELINE.SUPPORTPATH to /opt/senzing/data"
-    logging.info(message_info(156, filename, message))
-
-    config_parser['PIPELINE']['CONFIGPATH'] = '/etc/opt/senzing'
-    message = "Changed PIPELINE.CONFIGPATH to /etc/opt/senzing"
-    logging.info(message_info(156, filename, message))
-
-    config_parser['PIPELINE']['RESOURCEPATH'] = '/opt/senzing/g2/resources'
-    message = "Changed PIPELINE.RESOURCEPATH to /opt/senzing/g2/resources"
-    logging.info(message_info(156, filename, message))
-
-    # Remove SQL.G2CONFIGFILE option.
-
-    config_parser.remove_option('SQL', 'G2CONFIGFILE')
-    message = "Removed SQL.G2CONFIGFILE"
-    logging.info(message_info(156, filename, message))
-
-    # If configuration was passed in via SENZING_ENGINE_CONFIGURATION_JSON.
+    # If configuration was passed in via SENZING_ENGINE_CONFIGURATION_JSON, do a straight conversion to ini
 
     if engine_configuration_json:
         logging.info(message_info(163, filename))
         engine_configuration = json.loads(engine_configuration_json)
 
-        config_parser['PIPELINE']['CONFIGPATH'] = engine_configuration.get('PIPELINE', {}).get("CONFIGPATH")
-        config_parser['PIPELINE']['RESOURCEPATH'] = engine_configuration.get('PIPELINE', {}).get("RESOURCEPATH")
-        config_parser['PIPELINE']['SUPPORTPATH'] = engine_configuration.get('PIPELINE', {}).get("SUPPORTPATH")
-        config_parser['SQL']['CONNECTION'] = engine_configuration.get('SQL', {}).get("CONNECTION")
+        for key, value in engine_configuration.items():
+            config_parser[key] = value
 
-        # Handle HYBRID configuration.
+    else:
+        # Check SQL.CONNECTION.
 
-        sql_backend = engine_configuration.get('SQL', {}).get("BACKEND")
-        if sql_backend:
-            config_parser['SQL']['BACKEND'] = sql_backend
-            try:
-                config_parser.add_section(sql_backend)
-            except:
-                pass
-            sql_backend_items = engine_configuration.get(sql_backend, {})
-            for key, value in sql_backend_items.items():
-                config_parser[sql_backend][key] = value
-            databases = list(set(sql_backend_items.values()))
-            for database in databases:
-                try:
-                    config_parser.add_section(database)
-                except:
-                    pass
-                database_data = engine_configuration.get(database, {})
-                for key, value in database_data.items():
-                    config_parser[database][key] = value
+        old_database_url = config_parser.get('SQL', 'CONNECTION')
+        if new_database_url != old_database_url:
+            config_parser['SQL']['CONNECTION'] = new_database_url
+            message = "Changed SQL.CONNECTION to {0}".format(new_database_url)
+            logging.info(message_info(156, filename, message))
+
+        # Update PIPELINE entires - These are hard coded because they are always the same inside the conainter, but can be overridden by SENZING_ENGINE_CONFIGURATION_JSON
+        config_parser['PIPELINE']['SUPPORTPATH'] = '/opt/senzing/data'
+        message = "Changed PIPELINE.SUPPORTPATH to /opt/senzing/data"
+        logging.info(message_info(156, filename, message))
+
+        config_parser['PIPELINE']['CONFIGPATH'] = '/etc/opt/senzing'
+        message = "Changed PIPELINE.CONFIGPATH to /etc/opt/senzing"
+        logging.info(message_info(156, filename, message))
+
+        config_parser['PIPELINE']['RESOURCEPATH'] = '/opt/senzing/g2/resources'
+        message = "Changed PIPELINE.RESOURCEPATH to /opt/senzing/g2/resources"
+        logging.info(message_info(156, filename, message))
+
+        # Remove SQL.G2CONFIGFILE option.
+
+        config_parser.remove_option('SQL', 'G2CONFIGFILE')
+        message = "Removed SQL.G2CONFIGFILE"
+        logging.info(message_info(156, filename, message))
+
 
     # Write out contents.
 
