@@ -6,20 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.9] - TBD
+## [1.6.9] - 2021-03-25
 
 ### Added in 1.6.9
 
 - Better handling of SENZING_ENGINE_CONFIGURATION_JSON when creatign G2Module.ini
 
-## [1.6.8] - 2020-03-16
+## [1.6.8] - 2021-03-16
 
 ### Added in 1.6.8
 
 - Message when `SENZING_G2CONFIG_GTC` is created.
 - Refactored creating /etc/opt/senzing/G2Config.gtc; always produces a file.
 
-## [1.6.7] - 2020-03-16
+## [1.6.7] - 2021-03-16
 
 ### Added in 1.6.7
 
@@ -29,13 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update to senzing/senzing-base:1.5.5
 
-## [1.6.6] - 2020-02-03
+## [1.6.6] - 2021-02-03
 
 ### Added in 1.6.6
 
 - Critical [bug fix](https://github.com/Senzing/docker-init-container/issues/104) for bug introduced in 1.6.5:
 
-## [1.6.5] - 2020-02-01
+## [1.6.5] - 2021-02-01
 
 ### Added in 1.6.5
 
