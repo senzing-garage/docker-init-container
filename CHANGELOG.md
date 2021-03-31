@@ -6,11 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [latest] - 2021-03-30
+
+### Added in latest
+
+- The `debug-database-url` subcommand for debugging SENZING_DATABASE_URL parsing
+
 ## [1.6.9] - 2021-03-25
 
 ### Added in 1.6.9
 
-- Better handling of SENZING_ENGINE_CONFIGURATION_JSON when creatign G2Module.ini
+- Better handling of SENZING_ENGINE_CONFIGURATION_JSON when creating G2Module.ini
 
 ## [1.6.8] - 2021-03-16
 
