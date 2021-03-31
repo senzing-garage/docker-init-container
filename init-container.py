@@ -33,7 +33,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.6.8"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2021-03-16'
+__updated__ = '2021-03-31'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -191,6 +191,10 @@ def get_parser():
     ''' Parse commandline arguments. '''
 
     subcommands = {
+        'debug-database-url': {
+            "help": 'Show parsed database URL.  Does not modify system.',
+            "argument_aspects": ["common"],
+        },
         'initialize': {
             "help": 'Initialize a newly installed Senzing',
             "argument_aspects": ["common", "senzing-volumes", "enable", "uidgid"],
@@ -1050,7 +1054,6 @@ def change_module_ini(config):
         message = "Removed SQL.G2CONFIGFILE"
         logging.info(message_info(156, filename, message))
 
-
     # Write out contents.
 
     with open(filename, 'w') as output_file:
@@ -1575,6 +1578,48 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
 # do_* functions
 #   Common function signature: do_XXX(args)
 # -----------------------------------------------------------------------------
+
+
+def do_debug_database_url(args):
+    ''' For use with Docker acceptance testing. '''
+
+    # Get context from CLI, environment variables, and ini files.
+
+    config = get_configuration(args)
+
+    # Prolog.
+
+    database_url = config.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
+
+    # Output
+
+    print("")
+    print("SENZING_DATABASE_URL={0}".format(database_url))
+    print("")
+    print("===== Results from parsing SENZING_DATABASE_URL =====")
+    print("")
+    print(json.dumps(parsed_database_url, sort_keys=True, indent=4))
+    print("")
+
+    input_filename = "/opt/IBM/db2/clidriver/cfg/db2dsdriver.cfg.senzing-template"
+
+    # Detect error and exit, if needed.
+
+    if os.path.exists(input_filename):
+
+        print("===== Sample db2dsdriver.cfg =====")
+        print("")
+
+        if config.get('engine_configuration_json'):
+            db2dsdriver_contents = config.get('db2dsdriver_cfg_contents')
+            if db2dsdriver_contents is None:
+                exit_error(703)
+            print(db2dsdriver_contents)
+        else:
+            with open(input_filename, 'r') as in_file:
+                for line in in_file:
+                    print(line.format(**parsed_database_url).replace("\n", ""))
 
 
 def do_docker_acceptance_test(args):
