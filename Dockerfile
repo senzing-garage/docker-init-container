@@ -27,8 +27,11 @@ COPY init-container.py /app
 
 USER 1001:1001
 
+# Set enviroment variables
+
+ENV SENZING_SUBCOMMAND=initialize
+
 # Runtime execution.
 
 WORKDIR /app
 ENTRYPOINT ["/app/init-container.py"]
-CMD ["initialize"]
