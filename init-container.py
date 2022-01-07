@@ -144,6 +144,16 @@ configuration_locator = {
         "env": "SENZING_LICENSE_BASE64_ENCODED",
         "cli": "license-base64-encoded"
     },
+    "api_server_key_store_base64_encoded": {
+        "default": None,
+        "env": "SENZING_API_SERVER_KEY_STORE_BASE64_ENCODED",
+        "cli": "api-server-key-store-base64-encoded"
+    },
+    "api_server_client_key_store_base64_encoded": {
+        "default": None,
+        "env": "SENZING_API_SERVER_CLIENT_KEY_STORE_BASE64_ENCODED",
+        "cli": "api-server-client-key-store-base64-encoded"
+    },
     "mssql_odbc_ini_contents": {
         "default": None,
         "env": "SENZING_OPT_MICROSOFT_MSODBCSQL17_ETC_ODBC_INI_CONTENTS",
@@ -1225,6 +1235,28 @@ def create_g2_lic(config):
         with open(output_file_name, "wb") as output_file:
             output_file.write(base64.b64decode(license_base64_encoded))
 
+def create_server_keystore(config):
+
+    etc_dir = config.get("etc_dir")
+    api_server_key_store_base64_encoded = config.get('api_server_key_store_base64_encoded')
+
+    if api_server_key_store_base64_encoded:
+        output_file_name = "{0}/api-server-keystore.p12".format(etc_dir)
+        logging.info(message_info(157, output_file_name))
+        with open(output_file_name, "wb") as output_file:
+            output_file.write(base64.b64decode(api_server_key_store_base64_encoded))
+
+def create_client_keystore(config):
+
+    etc_dir = config.get("etc_dir")
+    api_server_client_key_store_base64_encoded = config.get('api_server_client_key_store_base64_encoded')
+
+    if api_server_client_key_store_base64_encoded:
+        output_file_name = "{0}/api-server-client-keystore.p12".format(etc_dir)
+        logging.info(message_info(157, output_file_name))
+        with open(output_file_name, "wb") as output_file:
+            output_file.write(base64.b64decode(api_server_client_key_store_base64_encoded))
+
 
 def create_g2config_gtc(config):
 
@@ -1676,6 +1708,14 @@ def do_initialize(args):
 
     create_g2_lic(config)
 
+    # If requested, create /etc/opt/senzing/api-server-keystore.p12
+
+    create_server_keystore(config)
+
+    # If requested, create /etc/opt/senzing/api-server-client-keystore.p12
+
+    create_client_keystore(config)
+
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
     create_g2config_gtc(config)
@@ -1768,6 +1808,14 @@ def do_initialize_files(args):
     # If requested, create /etc/opt/senzing/g2.lic
 
     create_g2_lic(config)
+
+    # If requested, create /etc/opt/senzing/api-server-keystore.p12
+
+    create_server_keystore(config)
+
+    # If requested, create /etc/opt/senzing/api-server-client-keystore.p12
+
+    create_client_keystore(config)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
