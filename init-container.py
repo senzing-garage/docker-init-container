@@ -33,7 +33,7 @@ except ImportError:
 __all__ = []
 __version__ = "1.6.8"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2021-03-31'
+__updated__ = '2022-01-11'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -144,15 +144,15 @@ configuration_locator = {
         "env": "SENZING_LICENSE_BASE64_ENCODED",
         "cli": "license-base64-encoded"
     },
-    "api_server_key_store_base64_encoded": {
-        "default": None,
-        "env": "SENZING_API_SERVER_KEY_STORE_BASE64_ENCODED",
-        "cli": "api-server-key-store-base64-encoded"
-    },
     "api_server_client_key_store_base64_encoded": {
         "default": None,
         "env": "SENZING_API_SERVER_CLIENT_KEY_STORE_BASE64_ENCODED",
         "cli": "api-server-client-key-store-base64-encoded"
+    },
+    "api_server_key_store_base64_encoded": {
+        "default": None,
+        "env": "SENZING_API_SERVER_KEY_STORE_BASE64_ENCODED",
+        "cli": "api-server-key-store-base64-encoded"
     },
     "mssql_odbc_ini_contents": {
         "default": None,
@@ -208,7 +208,7 @@ def get_parser():
         },
         'initialize': {
             "help": 'Initialize a newly installed Senzing',
-            "argument_aspects": ["common", "senzing-volumes", "enable", "uidgid"],
+            "argument_aspects": ["common", "senzing-volumes", "enable", "keystore", "uidgid"],
         },
         'initialize-database': {
             "help": 'Initialize only the database. This is a subset of the full initialize sub-commmand',
@@ -223,7 +223,7 @@ def get_parser():
         },
         'initialize-files': {
             "help": 'Initialize only the files. This is a subset of the full initialize sub-commmand',
-            "argument_aspects": ["common", "senzing-volumes", "enable", "uidgid"],
+            "argument_aspects": ["common", "senzing-volumes", "enable", "keystore", "uidgid"],
         },
         'sleep': {
             "help": 'Do nothing but sleep. For Docker testing.',
@@ -298,6 +298,18 @@ def get_parser():
                 "dest": "enable_postgresql",
                 "action": "store_true",
                 "help": "Enable PostgreSQL database. (SENZING_ENABLE_POSTGRESQL) Default: False"
+            },
+        },
+        "keystore": {
+            "--api-server-client-key-store-base64-encoded": {
+                "dest": "api_server_client_key_store_base64_encoded",
+                "metavar": "SENZING_API_SERVER_CLIENT_KEY_STORE_BASE64_ENCODED",
+                "help": "Base64 representation of the client keystore. Default: none"
+            },
+            "--api-server-key-store-base64-encoded": {
+                "dest": "api_server_key_store_base64_encoded",
+                "metavar": "SENZING_API_SERVER_KEY_STORE_BASE64_ENCODED",
+                "help": "Base64 representation of the private keystore. Default: none"
             },
         },
         "senzing-volumes": {
