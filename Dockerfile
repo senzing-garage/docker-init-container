@@ -5,7 +5,7 @@ ENV REFRESHED_AT=2022-01-06
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.6.14"
+      Version="1.7.0"
 
 HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
