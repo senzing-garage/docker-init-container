@@ -1592,7 +1592,7 @@ def get_g2_config(config, g2_config_name="init-container-G2-config"):
     try:
         g2_configuration_json = get_g2_configuration_json(config)
         result = G2Config.G2Config()
-        result.initV2(g2_config_name, g2_configuration_json, config.get('debug', False))
+        result.init(g2_config_name, g2_configuration_json, config.get('debug', False))
     except G2Exception.G2ModuleException as err:
         exit_error(897, g2_configuration_json, err)
 
@@ -1610,7 +1610,7 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
     try:
         g2_configuration_json = get_g2_configuration_json(config)
         result = G2ConfigMgr.G2ConfigMgr()
-        result.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
+        result.init(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
     except G2Exception.G2ModuleException as err:
         exit_error(896, g2_configuration_json, err)
 

@@ -15,6 +15,7 @@ USER root
 
 RUN apt update \
  && apt -y install \
+      libaio1 \
       odbc-postgresql \
  && rm -rf /var/lib/apt/lists/*
 
