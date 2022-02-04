@@ -474,6 +474,7 @@ message_dictionary = {
     "902": "{0} - Was not created because there is no {1}",
     "950": "Enter function: {0}",
     "951": "Exit  function: {0}",
+    "998": "Debugging enabled.",
     "999": "{0}",
 }
 
