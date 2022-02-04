@@ -1,11 +1,11 @@
 ARG BASE_IMAGE=senzing/senzing-base:1.6.4
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2022-01-06
+ENV REFRESHED_AT=2022-02-04
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.7.0"
+      Version="1.7.2"
 
 HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
@@ -28,7 +28,7 @@ COPY init-container.py /app
 
 USER 1001:1001
 
-# Set enviroment variables
+# Set enviroment variables.
 
 ENV SENZING_SUBCOMMAND=initialize
 
