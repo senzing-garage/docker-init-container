@@ -472,6 +472,8 @@ message_dictionary = {
     "900": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}D",
     "901": "{0} will not be modified",
     "902": "{0} - Was not created because there is no {1}",
+    "950": "Enter function: {0}",
+    "951": "Exit  function: {0}",
     "999": "{0}",
 }
 
@@ -483,7 +485,6 @@ def message(index, *args):
 
 
 def message_generic(generic_index, index, *args):
-    index_string = str(index)
     return "{0} {1}".format(message(generic_index, index), message(index, *args))
 
 
@@ -1610,6 +1611,7 @@ def get_g2_configuration_json(config):
 
 def get_g2_config(config, g2_config_name="init-container-G2-config"):
     ''' Get the G2Config resource. '''
+    logging.debug(message_debug(950, sys._getframe().f_code.co_name))
     global g2_config_singleton
 
     if g2_config_singleton:
@@ -1618,20 +1620,21 @@ def get_g2_config(config, g2_config_name="init-container-G2-config"):
     try:
         g2_configuration_json = get_g2_configuration_json(config)
         result = G2Config.G2Config()
-        if senzing_version_major <= 2:
-            result.initV2(g2_config_name, g2_configuration_json, config.get('debug', False))
+        if config.get("senzing_version_major") <= 2:
+            result.initV2(g2_config_name, g2_configuration_json, config.get('debug'))
         else:
-            result.init(g2_config_name, g2_configuration_json, config.get('debug', False))
-
+            result.init(g2_config_name, g2_configuration_json, config.get('debug'))
     except G2Exception.G2ModuleException as err:
         exit_error(897, g2_configuration_json, err)
 
     g2_config_singleton = result
+    logging.debug(message_debug(951, sys._getframe().f_code.co_name))
     return result
 
 
 def get_g2_configuration_manager(config, g2_configuration_manager_name="init-container-G2-configuration-manager"):
     ''' Get the G2ConfigMgr resource. '''
+    logging.debug(message_debug(950, sys._getframe().f_code.co_name))
     global g2_configuration_manager_singleton
 
     if g2_configuration_manager_singleton:
@@ -1640,14 +1643,15 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
     try:
         g2_configuration_json = get_g2_configuration_json(config)
         result = G2ConfigMgr.G2ConfigMgr()
-        if senzing_version_major <= 2:
-            result.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
+        if config.get("senzing_version_major") <= 2:
+            result.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug'))
         else:
-            result.init(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
+            result.init(g2_configuration_manager_name, g2_configuration_json, config.get('debug'))
     except G2Exception.G2ModuleException as err:
         exit_error(896, g2_configuration_json, err)
 
     g2_configuration_manager_singleton = result
+    logging.debug(message_debug(951, sys._getframe().f_code.co_name))
     return result
 
 # -----------------------------------------------------------------------------
@@ -1897,7 +1901,7 @@ def do_sleep(args):
 
     sleep_time_in_seconds = config.get('sleep_time_in_seconds')
 
-    # Sleep.
+    # Sleep
 
     if sleep_time_in_seconds > 0:
         logging.info(message_info(296, sleep_time_in_seconds))
@@ -1941,6 +1945,7 @@ if __name__ == "__main__":
     log_level_parameter = os.getenv("SENZING_LOG_LEVEL", "info").lower()
     log_level = log_level_map.get(log_level_parameter, logging.INFO)
     logging.basicConfig(format=log_format, level=log_level)
+    logging.debug(message_debug(998))
 
     # Trap signals temporarily until args are parsed.
 
