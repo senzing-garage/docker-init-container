@@ -4,8 +4,8 @@
 # init-container.py Example python skeleton.
 # -----------------------------------------------------------------------------
 
-from pathlib import Path
-from urllib.parse import urlparse, urlunparse
+# Import from standard library. https://docs.python.org/3/library/
+
 import argparse
 import base64
 import configparser
@@ -22,6 +22,12 @@ import sys
 import time
 import urllib
 import urllib.request
+from pathlib import Path
+from urllib.parse import urlparse, urlunparse
+
+# Import from https://pypi.org/
+
+# None.
 
 # Determine "Major" version of Senzing.
 
