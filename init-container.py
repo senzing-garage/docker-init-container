@@ -683,6 +683,7 @@ def get_configuration(args):
 
     result['program_version'] = __version__
     result['program_updated'] = __updated__
+    result['senzing_version_major'] = senzing_version_major
 
     # Special case: subcommand from command-line
 
@@ -1262,6 +1263,7 @@ def create_g2_lic(config):
         with open(output_file_name, "wb") as output_file:
             output_file.write(base64.b64decode(license_base64_encoded))
 
+
 def create_server_keystore(config):
 
     etc_dir = config.get("etc_dir")
@@ -1272,6 +1274,7 @@ def create_server_keystore(config):
         logging.info(message_info(157, output_file_name))
         with open(output_file_name, "wb") as output_file:
             output_file.write(base64.b64decode(api_server_key_store_base64_encoded))
+
 
 def create_client_keystore(config):
 
