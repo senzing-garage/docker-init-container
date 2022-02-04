@@ -23,27 +23,25 @@ import time
 import urllib
 import urllib.request
 
-# Import from Senzing
+# Determine "Major" version of Senzing.
+
+senzing_version_major = 3
+
+# Import from Senzing.
 
 try:
-    from senzing import G2Exception, G2Config, G2ConfigMgr, G2Diagnostic, G2Engine, G2Product
-    print(">>>>>> DEBUG: Imported Version 3 style")
+    from senzing import G2Config, G2ConfigMgr, G2Exception
 except:
 
-    # Fall back to pre-Senzing version 3 style of imports.
+    # Fall back to pre-Senzing-Python-SDK style of imports.
 
-    print(">>>>>> DEBUG: Version 3 style failed, trying version 2")
     try:
-        import G2Exception
         import G2Config
         import G2ConfigMgr
-        import G2Diagnostic
-        import G2Engine
-        import G2Product
-        print(">>>>>> DEBUG: Imported Version 2 style")
+        import G2Exception
+        senzing_version_major = 2
     except:
-        print(">>>>>> DEBUG: Version 3 style failed, trying version 2")
-        pass
+        senzing_version_major = 0
 
 # Metadata
 
@@ -1611,7 +1609,11 @@ def get_g2_config(config, g2_config_name="init-container-G2-config"):
     try:
         g2_configuration_json = get_g2_configuration_json(config)
         result = G2Config.G2Config()
-        result.init(g2_config_name, g2_configuration_json, config.get('debug', False))
+        if senzing_version_major <= 2:
+            result.initV2(g2_config_name, g2_configuration_json, config.get('debug', False))
+        else:
+            result.init(g2_config_name, g2_configuration_json, config.get('debug', False))
+
     except G2Exception.G2ModuleException as err:
         exit_error(897, g2_configuration_json, err)
 
@@ -1629,7 +1631,10 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
     try:
         g2_configuration_json = get_g2_configuration_json(config)
         result = G2ConfigMgr.G2ConfigMgr()
-        result.init(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
+        if senzing_version_major <= 2:
+            result.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
+        else:
+            result.init(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
     except G2Exception.G2ModuleException as err:
         exit_error(896, g2_configuration_json, err)
 
