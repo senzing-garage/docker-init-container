@@ -4,8 +4,8 @@
 # init-container.py Example python skeleton.
 # -----------------------------------------------------------------------------
 
-from pathlib import Path
-from urllib.parse import urlparse, urlunparse
+# Import from standard library. https://docs.python.org/3/library/
+
 import argparse
 import base64
 import configparser
@@ -22,18 +22,39 @@ import sys
 import time
 import urllib
 import urllib.request
+from pathlib import Path
+from urllib.parse import urlparse, urlunparse
+
+# Import from https://pypi.org/
+
+# None.
+
+# Determine "Major" version of Senzing.
+
+senzing_version_major = 3
+
+# Import from Senzing.
 
 try:
-    from G2Config import G2Config
-    from G2ConfigMgr import G2ConfigMgr
-    import G2Exception
-except ImportError:
-    pass
+    from senzing import G2Config, G2ConfigMgr, G2Exception
+except:
+
+    # Fall back to pre-Senzing-Python-SDK style of imports.
+
+    try:
+        import G2Config
+        import G2ConfigMgr
+        import G2Exception
+        senzing_version_major = 2
+    except:
+        senzing_version_major = 0
+
+# Metadata
 
 __all__ = []
-__version__ = "1.7.0"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.7.1"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-01-11'
+__updated__ = '2022-02-04'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -451,6 +472,9 @@ message_dictionary = {
     "900": "senzing-" + SENZING_PRODUCT_ID + "{0:04d}D",
     "901": "{0} will not be modified",
     "902": "{0} - Was not created because there is no {1}",
+    "950": "Enter function: {0}",
+    "951": "Exit  function: {0}",
+    "998": "Debugging enabled.",
     "999": "{0}",
 }
 
@@ -462,7 +486,6 @@ def message(index, *args):
 
 
 def message_generic(generic_index, index, *args):
-    index_string = str(index)
     return "{0} {1}".format(message(generic_index, index), message(index, *args))
 
 
@@ -668,6 +691,7 @@ def get_configuration(args):
 
     result['program_version'] = __version__
     result['program_updated'] = __updated__
+    result['senzing_version_major'] = senzing_version_major
 
     # Special case: subcommand from command-line
 
@@ -1247,6 +1271,7 @@ def create_g2_lic(config):
         with open(output_file_name, "wb") as output_file:
             output_file.write(base64.b64decode(license_base64_encoded))
 
+
 def create_server_keystore(config):
 
     etc_dir = config.get("etc_dir")
@@ -1257,6 +1282,7 @@ def create_server_keystore(config):
         logging.info(message_info(157, output_file_name))
         with open(output_file_name, "wb") as output_file:
             output_file.write(base64.b64decode(api_server_key_store_base64_encoded))
+
 
 def create_client_keystore(config):
 
@@ -1586,6 +1612,7 @@ def get_g2_configuration_json(config):
 
 def get_g2_config(config, g2_config_name="init-container-G2-config"):
     ''' Get the G2Config resource. '''
+    logging.debug(message_debug(950, sys._getframe().f_code.co_name))
     global g2_config_singleton
 
     if g2_config_singleton:
@@ -1593,17 +1620,22 @@ def get_g2_config(config, g2_config_name="init-container-G2-config"):
 
     try:
         g2_configuration_json = get_g2_configuration_json(config)
-        result = G2Config()
-        result.initV2(g2_config_name, g2_configuration_json, config.get('debug', False))
+        result = G2Config.G2Config()
+        if config.get("senzing_version_major") <= 2:
+            result.initV2(g2_config_name, g2_configuration_json, config.get('debug'))
+        else:
+            result.init(g2_config_name, g2_configuration_json, config.get('debug'))
     except G2Exception.G2ModuleException as err:
         exit_error(897, g2_configuration_json, err)
 
     g2_config_singleton = result
+    logging.debug(message_debug(951, sys._getframe().f_code.co_name))
     return result
 
 
 def get_g2_configuration_manager(config, g2_configuration_manager_name="init-container-G2-configuration-manager"):
     ''' Get the G2ConfigMgr resource. '''
+    logging.debug(message_debug(950, sys._getframe().f_code.co_name))
     global g2_configuration_manager_singleton
 
     if g2_configuration_manager_singleton:
@@ -1611,12 +1643,16 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
 
     try:
         g2_configuration_json = get_g2_configuration_json(config)
-        result = G2ConfigMgr()
-        result.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug', False))
+        result = G2ConfigMgr.G2ConfigMgr()
+        if config.get("senzing_version_major") <= 2:
+            result.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug'))
+        else:
+            result.init(g2_configuration_manager_name, g2_configuration_json, config.get('debug'))
     except G2Exception.G2ModuleException as err:
         exit_error(896, g2_configuration_json, err)
 
     g2_configuration_manager_singleton = result
+    logging.debug(message_debug(951, sys._getframe().f_code.co_name))
     return result
 
 # -----------------------------------------------------------------------------
@@ -1866,7 +1902,7 @@ def do_sleep(args):
 
     sleep_time_in_seconds = config.get('sleep_time_in_seconds')
 
-    # Sleep.
+    # Sleep
 
     if sleep_time_in_seconds > 0:
         logging.info(message_info(296, sleep_time_in_seconds))
@@ -1910,6 +1946,7 @@ if __name__ == "__main__":
     log_level_parameter = os.getenv("SENZING_LOG_LEVEL", "info").lower()
     log_level = log_level_map.get(log_level_parameter, logging.INFO)
     logging.basicConfig(format=log_format, level=log_level)
+    logging.debug(message_debug(998))
 
     # Trap signals temporarily until args are parsed.
 
