@@ -29,14 +29,16 @@ from urllib.parse import urlparse, urlunparse
 
 # None.
 
-# Determine "Major" version of Senzing.
+# Determine "Major" version of Senzing SDK.
 
-senzing_version_major = 3
+senzing_sdk_version_major = None
 
 # Import from Senzing.
 
 try:
     from senzing import G2Config, G2ConfigMgr, G2Exception
+    senzing_sdk_version_major = 3
+
 except:
 
     # Fall back to pre-Senzing-Python-SDK style of imports.
@@ -45,16 +47,16 @@ except:
         import G2Config
         import G2ConfigMgr
         import G2Exception
-        senzing_version_major = 2
+        senzing_sdk_version_major = 2
     except:
-        senzing_version_major = 0
+        senzing_sdk_version_major = None
 
 # Metadata
 
 __all__ = []
-__version__ = "1.7.1"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.7.3"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-02-04'
+__updated__ = '2022-02-11'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -456,6 +458,7 @@ message_dictionary = {
     "703": "SENZING_ENGINE_CONFIGURATION_JSON specified but not SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS. If the Senzing engine config is specified, the contents of db2dsdriver.cfg must also be provided.",
     "704": "SENZING_ENGINE_CONFIGURATION_JSON specified but not SENZING_OPT_MICROSOFT_MSODBCSQL17_ETC_ODBC_INI_CONTENTS. If the Senzing engine config is specified, the contents of odbc.ini must also be provided.",
     "801": "SENZING_ENGINE_CONFIGURATION_JSON contains multiple database schemes: {0}",
+    "879": "Senzing SDK was not imported.",
     "886": "G2Engine.addRecord() bad return code: {0}; JSON: {1}",
     "888": "G2Engine.addRecord() G2ModuleNotInitialized: {0}; JSON: {1}",
     "889": "G2Engine.addRecord() G2ModuleGenericException: {0}; JSON: {1}",
@@ -1952,6 +1955,11 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGTERM, bootstrap_signal_handler)
     signal.signal(signal.SIGINT, bootstrap_signal_handler)
+
+    # Warn that Senzing was not imported.
+
+    if not senzing_sdk_version_major:
+        logging.warning(message_warning(879))
 
     # Parse the command line arguments.
 
