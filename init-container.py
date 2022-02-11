@@ -694,7 +694,7 @@ def get_configuration(args):
 
     result['program_version'] = __version__
     result['program_updated'] = __updated__
-    result['senzing_version_major'] = senzing_version_major
+    result['senzing_sdk_version_major'] = senzing_sdk_version_major
 
     # Special case: subcommand from command-line
 
@@ -1624,7 +1624,7 @@ def get_g2_config(config, g2_config_name="init-container-G2-config"):
     try:
         g2_configuration_json = get_g2_configuration_json(config)
         result = G2Config.G2Config()
-        if config.get("senzing_version_major") <= 2:
+        if config.get("senzing_sdk_version_major") == 2:
             result.initV2(g2_config_name, g2_configuration_json, config.get('debug'))
         else:
             result.init(g2_config_name, g2_configuration_json, config.get('debug'))
@@ -1647,7 +1647,7 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
     try:
         g2_configuration_json = get_g2_configuration_json(config)
         result = G2ConfigMgr.G2ConfigMgr()
-        if config.get("senzing_version_major") <= 2:
+        if config.get("senzing_sdk_version_major") == 2:
             result.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug'))
         else:
             result.init(g2_configuration_manager_name, g2_configuration_json, config.get('debug'))
