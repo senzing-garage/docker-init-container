@@ -44,9 +44,9 @@ except:
     # Fall back to pre-Senzing-Python-SDK style of imports.
 
     try:
-        import G2Config
-        import G2ConfigMgr
-        import G2Exception
+        from G2Config import G2Config
+        from G2ConfigMgr import G2ConfigMgr
+        from G2Exception import G2ModuleException
         senzing_sdk_version_major = 2
     except:
         senzing_sdk_version_major = None
@@ -54,7 +54,7 @@ except:
 # Metadata
 
 __all__ = []
-__version__ = "1.7.3"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.7.4"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
 __updated__ = '2022-02-25'
 
@@ -434,6 +434,8 @@ message_dictionary = {
     "184": "Initializing for MS SQL",
     "185": "Initializing for MySQL",
     "186": "Initializing for PostgreSQL",
+    "280": "Python SDK import level {0}",
+    "281": "Senzing Engine version: {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -1658,6 +1660,22 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
     logging.debug(message_debug(951, sys._getframe().f_code.co_name))
     return result
 
+
+def get_g2_product(config, g2_product_name="loader-G2-product"):
+    '''Get the G2Product resource.'''
+    logging.debug(message_debug(950, sys._getframe().f_code.co_name))
+    try:
+        g2_configuration_json = get_g2_configuration_json(config)
+        result = G2Product()
+        if config.get("senzing_sdk_version_major") == 2:
+            result.initV2(g2_product_name, g2_configuration_json, config.get('debug'))
+        else:
+            result.init(g2_product_name, g2_configuration_json, config.get('debug'))
+    except G2ModuleException as err:
+        exit_error(892, config.get('g2project_ini'), err)
+    logging.debug(message_debug(951, sys._getframe().f_code.co_name))
+    return result
+
 # -----------------------------------------------------------------------------
 # do_* functions
 #   Common function signature: do_XXX(args)
@@ -1775,6 +1793,11 @@ def do_initialize(args):
 
     g2_config = get_g2_config(config)
     g2_configuration_manager = get_g2_configuration_manager(config)
+    g2_product = get_g2_product(config)
+
+    # Log Senzing version.
+
+    logging.info(message_info(281, g2_product.version()))
 
     # Initialize G2 database.
 
@@ -1820,6 +1843,11 @@ def do_initialize_database(args):
 
     g2_config = get_g2_config(config)
     g2_configuration_manager = get_g2_configuration_manager(config)
+    g2_product = get_g2_product(config)
+
+    # Log Senzing version.
+
+    logging.info(message_info(281, g2_product.version()))
 
     # Initialize G2 database.
 
@@ -1960,6 +1988,8 @@ if __name__ == "__main__":
 
     if not senzing_sdk_version_major:
         logging.warning(message_warning(879))
+    else:
+        logging.info(message_info(280, senzing_sdk_version_major))
 
     # Parse the command line arguments.
 
