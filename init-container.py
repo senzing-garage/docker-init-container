@@ -434,8 +434,6 @@ message_dictionary = {
     "184": "Initializing for MS SQL",
     "185": "Initializing for MySQL",
     "186": "Initializing for PostgreSQL",
-    "280": "Python SDK import level {0}",
-    "281": "Senzing Engine version: {0}",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -1793,11 +1791,6 @@ def do_initialize(args):
 
     g2_config = get_g2_config(config)
     g2_configuration_manager = get_g2_configuration_manager(config)
-    g2_product = get_g2_product(config)
-
-    # Log Senzing version.
-
-    logging.info(message_info(281, g2_product.version()))
 
     # Initialize G2 database.
 
@@ -1843,11 +1836,6 @@ def do_initialize_database(args):
 
     g2_config = get_g2_config(config)
     g2_configuration_manager = get_g2_configuration_manager(config)
-    g2_product = get_g2_product(config)
-
-    # Log Senzing version.
-
-    logging.info(message_info(281, g2_product.version()))
 
     # Initialize G2 database.
 
@@ -1988,8 +1976,6 @@ if __name__ == "__main__":
 
     if not senzing_sdk_version_major:
         logging.warning(message_warning(879))
-    else:
-        logging.info(message_info(280, senzing_sdk_version_major))
 
     # Parse the command line arguments.
 
