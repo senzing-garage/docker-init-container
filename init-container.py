@@ -1658,22 +1658,6 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
     logging.debug(message_debug(951, sys._getframe().f_code.co_name))
     return result
 
-
-def get_g2_product(config, g2_product_name="loader-G2-product"):
-    '''Get the G2Product resource.'''
-    logging.debug(message_debug(950, sys._getframe().f_code.co_name))
-    try:
-        g2_configuration_json = get_g2_configuration_json(config)
-        result = G2Product()
-        if config.get("senzing_sdk_version_major") == 2:
-            result.initV2(g2_product_name, g2_configuration_json, config.get('debug'))
-        else:
-            result.init(g2_product_name, g2_configuration_json, config.get('debug'))
-    except G2ModuleException as err:
-        exit_error(892, config.get('g2project_ini'), err)
-    logging.debug(message_debug(951, sys._getframe().f_code.co_name))
-    return result
-
 # -----------------------------------------------------------------------------
 # do_* functions
 #   Common function signature: do_XXX(args)
