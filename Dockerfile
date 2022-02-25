@@ -1,11 +1,11 @@
 ARG BASE_IMAGE=debian:11.2-slim@sha256:4c25ffa6ef572cf0d57da8c634769a08ae94529f7de5be5587ec8ce7b9b50f9c
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2022-02-08
+ENV REFRESHED_AT=2022-02-25
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.7.3"
+      Version="1.7.4"
 
 HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
@@ -44,7 +44,6 @@ ENV ODBCSYSINI=/etc/opt/senzing
 ENV PATH=${PATH}:/opt/senzing/g2/python:/opt/IBM/db2/clidriver/adm:/opt/IBM/db2/clidriver/bin
 ENV PYTHONPATH=/opt/senzing/g2/python
 ENV SENZING_ETC_PATH=/etc/opt/senzing
-
 
 # Set enviroment variables.
 

@@ -36,7 +36,7 @@ senzing_sdk_version_major = None
 # Import from Senzing.
 
 try:
-    from senzing import G2Config, G2ConfigMgr, G2Exception
+    from senzing import G2Config, G2ConfigMgr, G2ModuleException
     senzing_sdk_version_major = 3
 
 except:
@@ -44,9 +44,9 @@ except:
     # Fall back to pre-Senzing-Python-SDK style of imports.
 
     try:
-        import G2Config
-        import G2ConfigMgr
-        import G2Exception
+        from G2Config import G2Config
+        from G2ConfigMgr import G2ConfigMgr
+        from G2Exception import G2ModuleException
         senzing_sdk_version_major = 2
     except:
         senzing_sdk_version_major = None
@@ -54,9 +54,9 @@ except:
 # Metadata
 
 __all__ = []
-__version__ = "1.7.3"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.7.4"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-02-11'
+__updated__ = '2022-02-25'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -1623,12 +1623,12 @@ def get_g2_config(config, g2_config_name="init-container-G2-config"):
 
     try:
         g2_configuration_json = get_g2_configuration_json(config)
-        result = G2Config.G2Config()
+        result = G2Config()
         if config.get("senzing_sdk_version_major") == 2:
             result.initV2(g2_config_name, g2_configuration_json, config.get('debug'))
         else:
             result.init(g2_config_name, g2_configuration_json, config.get('debug'))
-    except G2Exception.G2ModuleException as err:
+    except G2ModuleException as err:
         exit_error(897, g2_configuration_json, err)
 
     g2_config_singleton = result
@@ -1646,12 +1646,12 @@ def get_g2_configuration_manager(config, g2_configuration_manager_name="init-con
 
     try:
         g2_configuration_json = get_g2_configuration_json(config)
-        result = G2ConfigMgr.G2ConfigMgr()
+        result = G2ConfigMgr()
         if config.get("senzing_sdk_version_major") == 2:
             result.initV2(g2_configuration_manager_name, g2_configuration_json, config.get('debug'))
         else:
             result.init(g2_configuration_manager_name, g2_configuration_json, config.get('debug'))
-    except G2Exception.G2ModuleException as err:
+    except G2ModuleException as err:
         exit_error(896, g2_configuration_json, err)
 
     g2_configuration_manager_singleton = result
