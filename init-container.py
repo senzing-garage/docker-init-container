@@ -35,9 +35,6 @@ senzing_sdk_version_major = None
 
 # Import from Senzing.
 
-from senzing import G2Config, G2ConfigMgr, G2ModuleException
-
-
 try:
     from senzing import G2Config, G2ConfigMgr, G2ModuleException
     senzing_sdk_version_major = 3
@@ -59,7 +56,7 @@ except:
 __all__ = []
 __version__ = "1.7.3"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-02-24'
+__updated__ = '2022-02-25'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
