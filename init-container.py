@@ -35,6 +35,9 @@ senzing_sdk_version_major = None
 
 # Import from Senzing.
 
+from senzing import G2Config, G2ConfigMgr, G2ModuleException
+
+
 try:
     from senzing import G2Config, G2ConfigMgr, G2ModuleException
     senzing_sdk_version_major = 3
