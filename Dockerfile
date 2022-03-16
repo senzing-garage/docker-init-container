@@ -1,11 +1,13 @@
 ARG BASE_IMAGE=debian:11.2-slim@sha256:4c25ffa6ef572cf0d57da8c634769a08ae94529f7de5be5587ec8ce7b9b50f9c
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2022-02-25
+ENV REFRESHED_AT=2022-03-17
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.7.4"
+      Version="1.7.5"
+
+# Define health check.
 
 HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
@@ -13,9 +15,12 @@ HEALTHCHECK CMD ["/app/healthcheck.sh"]
 
 USER root
 
+# Install packages via apt.
+
 RUN apt update \
  && apt -y install \
       libaio1 \
+      libssl1.1 \
       odbc-postgresql \
       python3 \
 && rm -rf /var/lib/apt/lists/*
@@ -43,6 +48,7 @@ ENV LD_LIBRARY_PATH=/opt/senzing/g2/lib:/opt/senzing/g2/lib/debian:/opt/IBM/db2/
 ENV ODBCSYSINI=/etc/opt/senzing
 ENV PATH=${PATH}:/opt/senzing/g2/python:/opt/IBM/db2/clidriver/adm:/opt/IBM/db2/clidriver/bin
 ENV PYTHONPATH=/opt/senzing/g2/python
+ENV SENZING_DOCKER_LAUNCHED=true
 ENV SENZING_ETC_PATH=/etc/opt/senzing
 
 # Set enviroment variables.
