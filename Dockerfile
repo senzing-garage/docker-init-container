@@ -28,7 +28,7 @@ RUN apt update \
 # Copy files from repository.
 
 COPY ./rootfs /
-COPY init-container.py /app
+COPY ./init-container.py /app/
 
 # Set environment variables for root.
 
