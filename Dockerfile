@@ -56,8 +56,8 @@ RUN keytool -genkey -alias sz-api-server -keystore sz-api-server-store.p12 -stor
       && keytool -genkey -alias my-client -keystore my-client-store.p12 -storetype PKCS12 -keyalg RSA -storepass '$SENZING_API_SERVER_CLIENT_KEY_STORE_PASSWORD' -validity 730 -keysize 2048 -dname 'CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown' \
       && keytool -export -keystore my-client-store.p12 -storepass '$SENZING_API_SERVER_CLIENT_KEY_STORE_PASSWORD' -storetype PKCS12 -alias my-client -file my-client.cer \
       && keytool -import -file my-client.cer -alias my-client -keystore client-trust-store.p12 -storetype PKCS12 -storepass '$SENZING_API_SERVER_CLIENT_KEY_STORE_PASSWORD' -noprompt \
-      && export SENZING_API_SERVER_KEY_STORE_BASE64_ENCODED=(base64 sz-api-server-store.p12) \
-      && export SENZING_API_SERVER_CLIENT_KEY_STORE_BASE64_ENCODED=(base64 client-trust-store.p12)
+      && export SENZING_API_SERVER_KEY_STORE_BASE64_ENCODED=$(base64 sz-api-server-store.p12) \
+      && export SENZING_API_SERVER_CLIENT_KEY_STORE_BASE64_ENCODED=$(base64 client-trust-store.p12)
 
 # Make non-root container.
 
