@@ -8,6 +8,7 @@
 
 import argparse
 import base64
+import boto3
 import configparser
 import filecmp
 import json
@@ -77,6 +78,11 @@ reserved_character_list = [';', ',', '/', '?', ':', '@', '=', '&']
 # 1) Command line options, 2) Environment variables, 3) Configuration files, 4) Default values
 
 configuration_locator = {
+    "cloud": {
+        "default": None,
+        "env": "SENZING_CLOUD",
+        "cli": "cloud"
+    },
     "data_dir": {
         "default": "/opt/senzing/data",
         "env": "SENZING_DATA_DIR",
@@ -1287,16 +1293,36 @@ def create_server_keystore(config):
             output_file.write(base64.b64decode(api_server_key_store_base64_encoded))
 
 
-def create_client_keystore(config):
-
+def create_keystore_truststore (config):
+    ''' Create key stores and trust stores, which are used by Senzing API server'''
     etc_dir = config.get("etc_dir")
-    api_server_client_key_store_base64_encoded = config.get('api_server_client_key_store_base64_encoded')
+    
+    server_keystore_password = os.getenv("SENZING_API_SERVER_KEY_STORE_PASSWORD")
+    client_keystore_password = os.getenv("SENZING_API_SERVER_CLIENT_KEY_STORE_PASSWORD")
 
-    if api_server_client_key_store_base64_encoded:
-        output_file_name = "{0}/api-server-client-keystore.p12".format(etc_dir)
-        logging.info(message_info(157, output_file_name))
-        with open(output_file_name, "wb") as output_file:
-            output_file.write(base64.b64decode(api_server_client_key_store_base64_encoded))
+    # Create server key store
+    os.system("keytool -genkey -alias sz-api-server -keystore {0}/sz-api-server-store.p12 -storetype PKCS12 -keyalg RSA -storepass {1} -validity 730 -keysize 2048 -dname 'CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown'".format(etc_dir, server_keystore_password))
+
+    # Create client key store
+    os.system("keytool -genkey -alias my-client -keystore {0}/my-client-key-store.p12 -storetype PKCS12 -keyalg RSA -storepass {1} -validity 730 -keysize 2048 -dname 'CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown'".format(etc_dir, client_keystore_password))
+
+    # Create client certificate with client key store
+    os.system("keytool -export -keystore {0}/my-client-key-store.p12 -storepass {1} -storetype PKCS12 -alias my-client -file {2}/my-client.cer".format(etc_dir, client_keystore_password, etc_dir))
+
+    # Add client certificate to client trust store
+    os.system("keytool -import -file {0}/my-client.cer -alias my-client -keystore {1}/my-client-trust-store.p12 -storetype PKCS12 -storepass {2} -noprompt".format(etc_dir, etc_dir, client_keystore_password))
+
+    # base64 encode client key store
+    encoded_keystore = ""
+    with open("{0}/my-client-key-store.p12".format(etc_dir), "rb") as keystore:
+        encoded_keystore = base64.b64encode(keystore.read())
+    
+    logging.info(message_info(157, "sz-api-server-store.p12"))
+    logging.info(message_info(157, "my-client-key-store.p12"))
+    logging.info(message_info(157, "my-client.cer"))
+    logging.info(message_info(157, "my-client-trust-store.p12"))
+
+    return encoded_keystore
 
 
 def create_g2config_gtc(config):
@@ -1583,6 +1609,19 @@ def database_initialization(config):
 
     return result
 
+def upload_aws_secrets_manager(base64_client_keystore):
+    ''' Upload client keystore to AWS secrets manager '''
+
+    client = boto3.client('secretsmanager')
+    response = client.create_secret(
+        Description='Base64 representation of Senzing Api Server client key store',
+        Name='SenzingClientKeyStoreBase64',
+        SecretString=base64_client_keystore
+    )
+
+    # double check with michael if this is the correct message code
+    logging.info(message_info(299, response))
+
 # -----------------------------------------------------------------------------
 # Senzing services.
 # -----------------------------------------------------------------------------
@@ -1759,13 +1798,13 @@ def do_initialize(args):
 
     create_g2_lic(config)
 
-    # If requested, create /etc/opt/senzing/api-server-keystore.p12
+    # If requested, create sz-api-server-store.p12 my-client-key-store.p12 my-client.cer my-client-trust-store.p12
 
-    create_server_keystore(config)
+    base64_client_keystore = create_keystore_truststore(config)
 
-    # If requested, create /etc/opt/senzing/api-server-client-keystore.p12
-
-    create_client_keystore(config)
+    # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
+    if config.get("cloud") == "aws":
+        upload_aws_secrets_manager(base64_client_keystore)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
@@ -1860,13 +1899,13 @@ def do_initialize_files(args):
 
     create_g2_lic(config)
 
-    # If requested, create /etc/opt/senzing/api-server-keystore.p12
+    # If requested, create sz-api-server-store.p12 my-client-key-store.p12 my-client.cer my-client-trust-store.p12
 
-    create_server_keystore(config)
+    base64_client_keystore = create_keystore_truststore(config)
 
-    # If requested, create /etc/opt/senzing/api-server-client-keystore.p12
-
-    create_client_keystore(config)
+    # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
+    if config.get("cloud") == "aws":
+        upload_aws_secrets_manager(base64_client_keystore)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
