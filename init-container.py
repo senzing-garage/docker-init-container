@@ -276,6 +276,11 @@ def get_parser():
 
     argument_aspects = {
         "common": {
+            "--cloud": {
+                "dest": "cloud",
+                "metavar": "SENZING_CLOUD",
+                "help": "Cloud provider in use. Default: none"
+            },
             "--database-url": {
                 "dest": "g2_database_url",
                 "metavar": "SENZING_DATABASE_URL",
@@ -1279,18 +1284,6 @@ def create_g2_lic(config):
         logging.info(message_info(157, output_file_name))
         with open(output_file_name, "wb") as output_file:
             output_file.write(base64.b64decode(license_base64_encoded))
-
-
-def create_server_keystore(config):
-
-    etc_dir = config.get("etc_dir")
-    api_server_key_store_base64_encoded = config.get('api_server_key_store_base64_encoded')
-
-    if api_server_key_store_base64_encoded:
-        output_file_name = "{0}/api-server-keystore.p12".format(etc_dir)
-        logging.info(message_info(157, output_file_name))
-        with open(output_file_name, "wb") as output_file:
-            output_file.write(base64.b64decode(api_server_key_store_base64_encoded))
 
 
 def create_keystore_truststore (config):
