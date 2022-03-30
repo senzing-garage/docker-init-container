@@ -25,6 +25,9 @@ RUN apt update \
       libssl1.1 \
       odbc-postgresql \
       python3 \
+      wget \
+      gnupg2 \
+      software-properties-common \
 && rm -rf /var/lib/apt/lists/*
 
 # Copy files from repository.
