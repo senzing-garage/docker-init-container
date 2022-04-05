@@ -25,6 +25,7 @@ RUN apt update \
       libssl1.1 \
       odbc-postgresql \
       python3 \
+      python3-pip \
       wget \
       gnupg2 \
       software-properties-common \
@@ -34,6 +35,7 @@ RUN apt update \
 
 COPY ./rootfs /
 COPY ./init-container.py /app/
+COPY ./requirements.txt /
 
 # Set environment variables for root.
 
@@ -52,6 +54,9 @@ RUN wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public > g
       && apt install -y adoptopenjdk-11-hotspot \
       && rm -rf /var/lib/apt/lists/* \
       && rm -f gpg.key
+
+# Install requirements.txt
+RUN pip3 install -r requirements.txt
 
 # Make non-root container.
 

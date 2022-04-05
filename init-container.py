@@ -1308,7 +1308,8 @@ def create_keystore_truststore (config):
     # base64 encode client key store
     encoded_keystore = ""
     with open("{0}/my-client-key-store.p12".format(etc_dir), "rb") as keystore:
-        encoded_keystore = base64.b64encode(keystore.read())
+        encoded_keystore_bytes = base64.b64encode(keystore.read())
+        encoded_keystore = encoded_keystore_bytes.decode('ascii')
     
     logging.info(message_info(157, "sz-api-server-store.p12"))
     logging.info(message_info(157, "my-client-key-store.p12"))
@@ -1605,7 +1606,8 @@ def database_initialization(config):
 def upload_aws_secrets_manager(base64_client_keystore):
     ''' Upload client keystore to AWS secrets manager '''
 
-    client = boto3.client('secretsmanager')
+    current_region = os.getenv("AWS_REGION")
+    client = boto3.Session(region_name=current_region).client('secretsmanager')
     response = client.create_secret(
         Description='Base64 representation of Senzing Api Server client key store',
         Name='SenzingClientKeyStoreBase64',
