@@ -2,8 +2,6 @@ ARG BASE_IMAGE=debian:11.2-slim@sha256:4c25ffa6ef572cf0d57da8c634769a08ae94529f7
 FROM ${BASE_IMAGE}
 
 ENV REFRESHED_AT=2022-03-17
-ENV SENZING_API_SERVER_KEY_STORE_PASSWORD=change-it
-ENV SENZING_API_SERVER_CLIENT_KEY_STORE_PASSWORD=change-it
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
