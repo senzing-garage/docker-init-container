@@ -403,7 +403,7 @@ see [Environment Variables](https://github.com/Senzing/knowledge-base/blob/maste
     ```console
     sudo docker build \
       --tag senzing/init-container \
-      https://github.com/senzing/docker-init-container.git
+      https://github.com/senzing/docker-init-container.git#main
     ```
 
 1. **Option #2:** Using `docker` command and local repository.
