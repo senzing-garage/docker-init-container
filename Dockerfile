@@ -19,14 +19,14 @@ USER root
 
 RUN apt update \
  && apt -y install \
+      gnupg2 \
       libaio1 \
       libssl1.1 \
       odbc-postgresql \
       python3 \
       python3-pip \
-      wget \
-      gnupg2 \
       software-properties-common \
+      wget \
 && rm -rf /var/lib/apt/lists/*
 
 # Copy files from repository.
