@@ -19,16 +19,21 @@ USER root
 
 RUN apt update \
  && apt -y install \
+      gnupg2 \
       libaio1 \
       libssl1.1 \
       odbc-postgresql \
       python3 \
+      python3-pip \
+      software-properties-common \
+      wget \
 && rm -rf /var/lib/apt/lists/*
 
 # Copy files from repository.
 
 COPY ./rootfs /
 COPY ./init-container.py /app/
+COPY ./requirements.txt /
 
 # Set environment variables for root.
 
@@ -37,6 +42,19 @@ ENV ODBCSYSINI=/etc/opt/senzing
 ENV PATH=${PATH}:/opt/senzing/g2/python:/opt/IBM/db2/clidriver/adm:/opt/IBM/db2/clidriver/bin
 ENV PYTHONPATH=/opt/senzing/g2/python
 ENV SENZING_ETC_PATH=/etc/opt/senzing
+
+# Install Java 11
+
+RUN wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public > gpg.key \
+      && cat gpg.key | apt-key add - \
+      && add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ \
+      && apt update \
+      && apt install -y adoptopenjdk-11-hotspot \
+      && rm -rf /var/lib/apt/lists/* \
+      && rm -f gpg.key
+
+# Install requirements.txt
+RUN pip3 install -r requirements.txt
 
 # Make non-root container.
 
