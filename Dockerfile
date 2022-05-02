@@ -5,7 +5,7 @@ ENV REFRESHED_AT=2022-04-01
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.7.6"
+      Version="1.7.7"
 
 # Define health check.
 
@@ -21,6 +21,7 @@ RUN apt update \
  && apt -y install \
       gnupg2 \
       libaio1 \
+      libodbc1 \
       libssl1.1 \
       odbc-postgresql \
       python3 \
