@@ -59,7 +59,7 @@ __version__ = "1.7.6"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
 __updated__ = '2022-04-01'
 
-SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
+SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/main/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
 
 # Working with bytes.
@@ -154,7 +154,7 @@ configuration_locator = {
         "cli": "g2-dir"
     },
     "governor_url": {
-        "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py",
+        "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/main/senzing_governor.py",
         "env": "SENZING_GOVERNOR_URL",
         "cli": "governor-url"
     },
