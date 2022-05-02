@@ -19,4 +19,5 @@ disable=
 	too-many-locals,
 	unnecessary-dict-index-lookup,
 	unspecified-encoding,
+	unused-argument,
     line-too-long,
