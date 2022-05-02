@@ -1,0 +1,23 @@
+[pylint]
+ignore=
+    __init__.py,
+disable=
+	broad-except,
+	consider-using-f-string,
+	duplicate-string-formatting-argument,
+	global-statement,
+	import-error,
+	invalid-name,
+	missing-class-docstring,
+	missing-function-docstring,
+	missing-module-docstring,
+	protected-access,
+	redefined-outer-name,
+	too-few-public-methods,
+	too-many-branches,
+	too-many-lines,
+	too-many-locals,
+	unnecessary-dict-index-lookup,
+	unspecified-encoding,
+	unused-argument,
+    line-too-long,

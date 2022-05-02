@@ -8,7 +8,6 @@
 
 import argparse
 import base64
-import boto3
 import configparser
 import filecmp
 import json
@@ -17,7 +16,6 @@ import logging
 import os
 import shutil
 import signal
-import stat
 import string
 import sys
 import time
@@ -28,7 +26,7 @@ from urllib.parse import urlparse, urlunparse
 
 # Import from https://pypi.org/
 
-# None.
+import boto3
 
 # Determine "Major" version of Senzing SDK.
 
@@ -40,7 +38,7 @@ try:
     from senzing import G2Config, G2ConfigMgr, G2ModuleException
     senzing_sdk_version_major = 3
 
-except:
+except Exception:
 
     # Fall back to pre-Senzing-Python-SDK style of imports.
 
@@ -49,7 +47,7 @@ except:
         from G2ConfigMgr import G2ConfigMgr
         from G2Exception import G2ModuleException
         senzing_sdk_version_major = 2
-    except:
+    except Exception:
         senzing_sdk_version_major = None
 
 # Metadata
@@ -59,7 +57,7 @@ __version__ = "1.7.6"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
 __updated__ = '2022-04-01'
 
-SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/master/lists/senzing-product-ids.md
+SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/main/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
 
 # Working with bytes.
@@ -154,7 +152,7 @@ configuration_locator = {
         "cli": "g2-dir"
     },
     "governor_url": {
-        "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/master/senzing_governor.py",
+        "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/main/senzing_governor.py",
         "env": "SENZING_GOVERNOR_URL",
         "cli": "governor-url"
     },
@@ -528,9 +526,9 @@ def get_exception():
 # -----------------------------------------------------------------------------
 
 
-def translate(map, astring):
+def translate(mapping, astring):
     new_string = str(astring)
-    for key, value in map.items():
+    for key, value in mapping.items():
         new_string = new_string.replace(key, value)
     return new_string
 
@@ -930,8 +928,8 @@ def change_directory_ownership(config):
                 os.chown(directory, int(uid), int(gid))
 
             for root, dirs, files in os.walk(directory):
-                for dir in dirs:
-                    dirname = os.path.join(root, dir)
+                for adir in dirs:
+                    dirname = os.path.join(root, adir)
                     actual_uid = os.stat(dirname).st_uid
                     actual_gid = os.stat(dirname).st_gid
                     if (actual_uid, actual_gid) != (uid, gid):
@@ -1276,7 +1274,7 @@ def create_g2_lic(config):
 def create_keystore_truststore (config):
     ''' Create key stores and trust stores, which are used by Senzing API server'''
     etc_dir = config.get("etc_dir")
-    
+
     # default keystore password is change-it
     server_keystore_password = "change-it" if os.getenv("SENZING_API_SERVER_KEY_STORE_PASSWORD") is None else os.getenv("SENZING_API_SERVER_KEY_STORE_PASSWORD")
     client_keystore_password = "change-it" if os.getenv("SENZING_API_SERVER_CLIENT_KEY_STORE_PASSWORD") is None else os.getenv("SENZING_API_SERVER_CLIENT_KEY_STORE_PASSWORD")
@@ -1298,7 +1296,7 @@ def create_keystore_truststore (config):
     with open("{0}/my-client-key-store.p12".format(etc_dir), "rb") as keystore:
         encoded_keystore_bytes = base64.b64encode(keystore.read())
         encoded_keystore = encoded_keystore_bytes.decode('ascii')
-    
+
     logging.info(message_info(157, "sz-api-server-store.p12"))
     logging.info(message_info(157, "my-client-key-store.p12"))
     logging.info(message_info(157, "my-client.cer"))
@@ -1340,6 +1338,7 @@ def delete_files(config):
 
 def database_initialization_db2(config):
     logging.info(message_info(183))
+    result = None
 
     database_url = config.get('g2_database_url')
     parsed_database_url = parse_database_url(database_url)
@@ -1352,7 +1351,7 @@ def database_initialization_db2(config):
 
     if not os.path.exists(input_filename):
         logging.warning(message_warning(510, input_filename))
-        return
+        return result
 
     # Backup existing file.
 
@@ -1384,6 +1383,8 @@ def database_initialization_db2(config):
         else:
             logging.info(message_info(161, backup_filename, output_filename))
 
+    return result
+
 # The following method is just a docstring for use in creating a template file.
 
 
@@ -1399,6 +1400,7 @@ Server = {hostname},{port}
 
 def database_initialization_mssql(config):
     logging.info(message_info(184))
+    result = None
 
     database_url = config.get('g2_database_url')
     parsed_database_url = parse_database_url(database_url)
@@ -1457,12 +1459,12 @@ def database_initialization_mssql(config):
         else:
             logging.info(message_info(161, backup_filename, output_filename))
 
+    return result
+
 
 def database_initialization_mysql(config):
     logging.info(message_info(185))
-
-    database_url = config.get('g2_database_url')
-    parsed_database_url = parse_database_url(database_url)
+    result = None
 
     url = "http://repo.mysql.com/apt/debian/pool/mysql-8.0/m/mysql-community/libmysqlclient21_8.0.20-1debian10_amd64.deb"
     filename = "/opt/senzing/g2/download/libmysqlclient.deb"
@@ -1502,13 +1504,17 @@ def database_initialization_mysql(config):
         logging.info(message_info(158, libmysqlclient_link, libmysqlclient))
         os.symlink(libmysqlclient_filename, libmysqlclient_link)
 
+    return result
+
 
 def database_initialization_postgresql(config):
     logging.info(message_info(186))
+    result = None
 
     # Install senzing postgresql governor if it is not installed.
 
     install_senzing_postgresql_governor(config)
+    return result
 
 
 def install_senzing_postgresql_governor(config):
@@ -1530,7 +1536,7 @@ def install_senzing_postgresql_governor(config):
 def database_initialization(config):
     ''' Given a canonical database URL, transform to the specific URL. '''
 
-    result = ""
+    result = None
 
     enable_db2 = config.get('enable_db2')
     enable_mssql = config.get('enable_mssql')
