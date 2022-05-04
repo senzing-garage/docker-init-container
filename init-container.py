@@ -148,6 +148,11 @@ configuration_locator = {
         "env": "SENZING_G2_DIR",
         "cli": "g2-dir"
     },
+    "generate_ssl_keystore": {
+        "default": False,
+        "env": "SENZING_GENERATE_SSL_KEYSTORE",
+        "cli": "generate-ssl-keystore"
+    },
     "governor_url": {
         "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/main/senzing_governor.py",
         "env": "SENZING_GOVERNOR_URL",
@@ -270,6 +275,11 @@ def get_parser():
                 "metavar": "SENZING_CLOUD",
                 "help": "Cloud provider in use. Default: none"
             },
+            "--db2dsdriver-cfg-contents": {
+                "dest": "db2dsdriver_cfg_contents",
+                "metavar": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
+                "help": "Contents of the Db2 db2dsdriver.cfg file for advanced Db2 configurations or Senzing Clustering. Default: none"
+            },
             "--database-url": {
                 "dest": "g2_database_url",
                 "metavar": "SENZING_DATABASE_URL",
@@ -290,10 +300,10 @@ def get_parser():
                 "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
                 "help": "Advanced Senzing engine configuration. Default: none"
             },
-            "--db2dsdriver-cfg-contents": {
-                "dest": "db2dsdriver_cfg_contents",
-                "metavar": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
-                "help": "Contents of the Db2 db2dsdriver.cfg file for advanced Db2 configurations or Senzing Clustering. Default: none"
+            "--generate-ssl-keystore": {
+                "dest": "generate_ssl_keystore",
+                "action": "store_true",
+                "help": "Generate SSL Keystore files. (SENZING_GENERATE_SSL_KEYSTORE) Default: False"
             },
             "--mssql-odbc-ini-contents": {
                 "dest": "mssql_odbc_ini_contents",
@@ -702,6 +712,7 @@ def get_configuration(args):
         'enable_mssql',
         'enable_mysql',
         'enable_postgresql',
+        'generate_ssl_keystore',
         'update_ini_files',
     ]
     for boolean in booleans:
@@ -1803,12 +1814,18 @@ def do_initialize(args):
     create_g2_lic(config)
 
     # If requested, create sz-api-server-store.p12 my-client-key-store.p12 my-client.cer my-client-trust-store.p12
-    if which("keytool") is not None:
-        base64_client_keystore = create_keystore_truststore(config)
 
-        # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
-        if config.get("cloud") == "aws":
-            upload_aws_secrets_manager(config, base64_client_keystore)
+    if config.get("generate_ssl_keystore"):
+        if which("keytool") is not None:
+
+            # TODO: Add a "java -version" check for proper version of keytool.
+
+            base64_client_keystore = create_keystore_truststore(config)
+
+            # If requested, upload base64 representation of my-client-key-store.p12 to secret manager.
+
+            if config.get("cloud") == "aws":
+                upload_aws_secrets_manager(config, base64_client_keystore)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
@@ -1904,12 +1921,18 @@ def do_initialize_files(args):
     create_g2_lic(config)
 
     # If requested, create sz-api-server-store.p12 my-client-key-store.p12 my-client.cer my-client-trust-store.p12
-    if which("keytool") is not None:
-        base64_client_keystore = create_keystore_truststore(config)
 
-        # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
-        if config.get("cloud") == "aws":
-            upload_aws_secrets_manager(config, base64_client_keystore)
+    if config.get("generate_ssl_keystore"):
+        if which("keytool") is not None:
+
+            # TODO: Add a "java -version" check for proper version of keytool.
+
+            base64_client_keystore = create_keystore_truststore(config)
+
+            # If requested, upload base64 representation of my-client-key-store.p12 to secret manager.
+
+            if config.get("cloud") == "aws":
+                upload_aws_secrets_manager(config, base64_client_keystore)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
