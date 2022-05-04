@@ -303,7 +303,7 @@ def get_parser():
             "--stackname": {
                 "dest": "stackname",
                 "metavar": "SENZING_STACK_NAME",
-                "help": "Cloud provider in use. Default: none"
+                "help": "AWS cloudformation stack name. Default: none"
             }
         },
         "enable": {
