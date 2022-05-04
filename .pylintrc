@@ -1,12 +1,11 @@
 [pylint]
-ignore=
-    __init__.py,
 disable=
 	broad-except,
 	consider-using-f-string,
 	duplicate-string-formatting-argument,
 	global-statement,
 	import-error,
+    import-outside-toplevel,
 	invalid-name,
 	missing-class-docstring,
 	missing-function-docstring,
@@ -21,3 +20,8 @@ disable=
 	unspecified-encoding,
 	unused-argument,
     line-too-long,
+ignore=
+    __init__.py,
+notes=
+    FIXME,
+

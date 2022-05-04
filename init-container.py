@@ -21,12 +21,9 @@ import sys
 import time
 import urllib
 import urllib.request
+from shutil import which
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
-
-# Import from https://pypi.org/
-
-import boto3
 
 # Determine "Major" version of Senzing SDK.
 
@@ -53,9 +50,9 @@ except Exception:
 # Metadata
 
 __all__ = []
-__version__ = "1.7.6"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.7.8"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-04-01'
+__updated__ = '2022-05-04'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/main/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -150,6 +147,11 @@ configuration_locator = {
         "default": "/opt/senzing/g2",
         "env": "SENZING_G2_DIR",
         "cli": "g2-dir"
+    },
+    "generate_ssl_keystore": {
+        "default": False,
+        "env": "SENZING_GENERATE_SSL_KEYSTORE",
+        "cli": "generate-ssl-keystore"
     },
     "governor_url": {
         "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/main/senzing_governor.py",
@@ -273,6 +275,11 @@ def get_parser():
                 "metavar": "SENZING_CLOUD",
                 "help": "Cloud provider in use. Default: none"
             },
+            "--db2dsdriver-cfg-contents": {
+                "dest": "db2dsdriver_cfg_contents",
+                "metavar": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
+                "help": "Contents of the Db2 db2dsdriver.cfg file for advanced Db2 configurations or Senzing Clustering. Default: none"
+            },
             "--database-url": {
                 "dest": "g2_database_url",
                 "metavar": "SENZING_DATABASE_URL",
@@ -293,10 +300,10 @@ def get_parser():
                 "metavar": "SENZING_ENGINE_CONFIGURATION_JSON",
                 "help": "Advanced Senzing engine configuration. Default: none"
             },
-            "--db2dsdriver-cfg-contents": {
-                "dest": "db2dsdriver_cfg_contents",
-                "metavar": "SENZING_OPT_IBM_DB2_CLIDRIVER_CFG_DB2DSDRIVER_CFG_CONTENTS",
-                "help": "Contents of the Db2 db2dsdriver.cfg file for advanced Db2 configurations or Senzing Clustering. Default: none"
+            "--generate-ssl-keystore": {
+                "dest": "generate_ssl_keystore",
+                "action": "store_true",
+                "help": "Generate SSL Keystore files. (SENZING_GENERATE_SSL_KEYSTORE) Default: False"
             },
             "--mssql-odbc-ini-contents": {
                 "dest": "mssql_odbc_ini_contents",
@@ -306,7 +313,7 @@ def get_parser():
             "--stackname": {
                 "dest": "stackname",
                 "metavar": "SENZING_STACK_NAME",
-                "help": "Cloud provider in use. Default: none"
+                "help": "AWS cloudformation stack name. Default: none"
             }
         },
         "enable": {
@@ -705,6 +712,7 @@ def get_configuration(args):
         'enable_mssql',
         'enable_mysql',
         'enable_postgresql',
+        'generate_ssl_keystore',
         'update_ini_files',
     ]
     for boolean in booleans:
@@ -1600,6 +1608,9 @@ def database_initialization(config):
 def upload_aws_secrets_manager(config, base64_client_keystore):
     ''' Upload client keystore to AWS secrets manager '''
 
+    # Import from https://pypi.org/
+    import boto3
+
     aws_stack_name = config.get("stackname")
     current_region = os.getenv("AWS_REGION")
     client = boto3.Session(region_name=current_region).client('secretsmanager')
@@ -1804,11 +1815,17 @@ def do_initialize(args):
 
     # If requested, create sz-api-server-store.p12 my-client-key-store.p12 my-client.cer my-client-trust-store.p12
 
-    base64_client_keystore = create_keystore_truststore(config)
+    if config.get("generate_ssl_keystore"):
+        if which("keytool") is not None:
 
-    # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
-    if config.get("cloud") == "aws":
-        upload_aws_secrets_manager(config, base64_client_keystore)
+            # TODO: Add a "java -version" check for proper version of keytool.
+
+            base64_client_keystore = create_keystore_truststore(config)
+
+            # If requested, upload base64 representation of my-client-key-store.p12 to secret manager.
+
+            if config.get("cloud") == "aws":
+                upload_aws_secrets_manager(config, base64_client_keystore)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
@@ -1905,11 +1922,17 @@ def do_initialize_files(args):
 
     # If requested, create sz-api-server-store.p12 my-client-key-store.p12 my-client.cer my-client-trust-store.p12
 
-    base64_client_keystore = create_keystore_truststore(config)
+    if config.get("generate_ssl_keystore"):
+        if which("keytool") is not None:
 
-    # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
-    if config.get("cloud") == "aws":
-        upload_aws_secrets_manager(config, base64_client_keystore)
+            # TODO: Add a "java -version" check for proper version of keytool.
+
+            base64_client_keystore = create_keystore_truststore(config)
+
+            # If requested, upload base64 representation of my-client-key-store.p12 to secret manager.
+
+            if config.get("cloud") == "aws":
+                upload_aws_secrets_manager(config, base64_client_keystore)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 

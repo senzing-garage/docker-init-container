@@ -1,11 +1,11 @@
 ARG BASE_IMAGE=debian:11.3-slim@sha256:78fd65998de7a59a001d792fe2d3a6d2ea25b6f3f068e5c84881250373577414
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2022-04-01
+ENV REFRESHED_AT=2022-05-04
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.7.7"
+      Version="1.7.8"
 
 # Define health check.
 
@@ -28,13 +28,19 @@ RUN apt update \
       python3-pip \
       software-properties-common \
       wget \
-&& rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
+
+# Install packages via PIP.
+
+COPY requirements.txt .
+RUN pip3 install --upgrade pip \
+ && pip3 install -r requirements.txt \
+ && rm /requirements.txt
 
 # Copy files from repository.
 
 COPY ./rootfs /
 COPY ./init-container.py /app/
-COPY ./requirements.txt /
 
 # Set environment variables for root.
 
@@ -47,15 +53,12 @@ ENV SENZING_ETC_PATH=/etc/opt/senzing
 # Install Java 11
 
 RUN wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public > gpg.key \
-      && cat gpg.key | apt-key add - \
-      && add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ \
-      && apt update \
-      && apt install -y adoptopenjdk-11-hotspot \
-      && rm -rf /var/lib/apt/lists/* \
-      && rm -f gpg.key
-
-# Install requirements.txt
-RUN pip3 install -r requirements.txt
+ && cat gpg.key | apt-key add - \
+ && add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ \
+ && apt update \
+ && apt install -y adoptopenjdk-11-hotspot \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -f gpg.key
 
 # Make non-root container.
 
