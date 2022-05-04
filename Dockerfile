@@ -46,13 +46,13 @@ ENV SENZING_ETC_PATH=/etc/opt/senzing
 
 # Install Java 11
 
-RUN wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public > gpg.key \
-      && cat gpg.key | apt-key add - \
-      && add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ \
-      && apt update \
-      && apt install -y adoptopenjdk-11-hotspot \
-      && rm -rf /var/lib/apt/lists/* \
-      && rm -f gpg.key
+# RUN wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public > gpg.key \
+#       && cat gpg.key | apt-key add - \
+#       && add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ \
+#       && apt update \
+#       && apt install -y adoptopenjdk-11-hotspot \
+#       && rm -rf /var/lib/apt/lists/* \
+#       && rm -f gpg.key
 
 # Install requirements.txt
 RUN pip3 install -r requirements.txt
@@ -77,4 +77,5 @@ ENV SENZING_SUBCOMMAND=initialize
 # Runtime execution.
 
 WORKDIR /app
-ENTRYPOINT ["/app/init-container.py"]
+# ENTRYPOINT ["/app/init-container.py"]
+CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"

@@ -21,12 +21,9 @@ import sys
 import time
 import urllib
 import urllib.request
+from shutil import which
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
-
-# Import from https://pypi.org/
-
-import boto3
 
 # Determine "Major" version of Senzing SDK.
 
@@ -1600,6 +1597,9 @@ def database_initialization(config):
 def upload_aws_secrets_manager(config, base64_client_keystore):
     ''' Upload client keystore to AWS secrets manager '''
 
+    # Import from https://pypi.org/
+    import boto3
+
     aws_stack_name = config.get("stackname")
     current_region = os.getenv("AWS_REGION")
     client = boto3.Session(region_name=current_region).client('secretsmanager')
@@ -1803,12 +1803,12 @@ def do_initialize(args):
     create_g2_lic(config)
 
     # If requested, create sz-api-server-store.p12 my-client-key-store.p12 my-client.cer my-client-trust-store.p12
+    if which("keytool") is not None:
+        base64_client_keystore = create_keystore_truststore(config)
 
-    base64_client_keystore = create_keystore_truststore(config)
-
-    # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
-    if config.get("cloud") == "aws":
-        upload_aws_secrets_manager(config, base64_client_keystore)
+        # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
+        if config.get("cloud") == "aws":
+            upload_aws_secrets_manager(config, base64_client_keystore)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
