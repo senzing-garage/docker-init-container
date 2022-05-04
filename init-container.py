@@ -1904,12 +1904,12 @@ def do_initialize_files(args):
     create_g2_lic(config)
 
     # If requested, create sz-api-server-store.p12 my-client-key-store.p12 my-client.cer my-client-trust-store.p12
+    if which("keytool") is not None:
+        base64_client_keystore = create_keystore_truststore(config)
 
-    base64_client_keystore = create_keystore_truststore(config)
-
-    # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
-    if config.get("cloud") == "aws":
-        upload_aws_secrets_manager(config, base64_client_keystore)
+        # If requested, upload base64 representation of my-client-key-store.p12 to secret manager
+        if config.get("cloud") == "aws":
+            upload_aws_secrets_manager(config, base64_client_keystore)
 
     # If requested, create /etc/opt/senzing/G2Config.gtc
 
