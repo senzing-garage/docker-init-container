@@ -50,9 +50,9 @@ except Exception:
 # Metadata
 
 __all__ = []
-__version__ = "1.7.8"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.7.9"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-05-04'
+__updated__ = '2022-05-09'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/main/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -738,6 +738,15 @@ def get_configuration(args):
 
     if not result['g2_database_url_raw']:
         result['g2_database_url_raw'] = get_g2_database_url_raw(result.get("g2_database_url"))
+
+    # Add database components to configuration.
+
+    database_url = result.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
+    database_url_components = ['scheme', 'path', 'params', 'query', 'fragment', 'username', 'hostname', 'port', 'schema']
+    for database_url_component in database_url_components:
+        if parsed_database_url.get(database_url_component):
+            result["database-{0}".format(database_url_component)] = parsed_database_url.get(database_url_component)
 
     return result
 
@@ -1604,6 +1613,7 @@ def database_initialization(config):
         logging.error(message_error(695, scheme, database_url))
 
     return result
+
 
 def upload_aws_secrets_manager(config, base64_client_keystore):
     ''' Upload client keystore to AWS secrets manager '''

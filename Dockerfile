@@ -5,7 +5,7 @@ ENV REFRESHED_AT=2022-05-09
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.7.8"
+      Version="1.7.9"
 
 # Define health check.
 
