@@ -50,9 +50,9 @@ except Exception:
 # Metadata
 
 __all__ = []
-__version__ = "1.7.8"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.7.9"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-05-04'
+__updated__ = '2022-05-09'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/main/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -428,6 +428,7 @@ message_dictionary = {
     "161": "{0} - Backup of current {1}",
     "162": "{0} - Creating directory",
     "163": "{0} - Configuring for Senzing database cluster based on SENZING_ENGINE_CONFIGURATION_JSON",
+    "164": "Database URL components - scheme: {scheme}; path: {path}; params: {params}; query: {query}; fragment: {fragment}; username: {username}; hostname: {hostname}; port: {port}; schema: {schema};",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
     "180": "{0} - Postgresql detected.  Installing governor from {1}",
@@ -485,30 +486,30 @@ message_dictionary = {
 }
 
 
-def message(index, *args):
+def message(index, *args, **kwargs):
     index_string = str(index)
     template = message_dictionary.get(index_string, "No message for index {0}.".format(index_string))
-    return template.format(*args)
+    return template.format(*args, **kwargs)
 
 
-def message_generic(generic_index, index, *args):
-    return "{0} {1}".format(message(generic_index, index), message(index, *args))
+def message_generic(generic_index, index, *args, **kwargs):
+    return "{0} {1}".format(message(generic_index, index), message(index, *args, **kwargs))
 
 
-def message_info(index, *args):
-    return message_generic(MESSAGE_INFO, index, *args)
+def message_info(index, *args, **kwargs):
+    return message_generic(MESSAGE_INFO, index, *args, **kwargs)
 
 
-def message_warning(index, *args):
-    return message_generic(MESSAGE_WARN, index, *args)
+def message_warning(index, *args, **kwargs):
+    return message_generic(MESSAGE_WARN, index, *args, **kwargs)
 
 
-def message_error(index, *args):
-    return message_generic(MESSAGE_ERROR, index, *args)
+def message_error(index, *args, **kwargs):
+    return message_generic(MESSAGE_ERROR, index, *args, **kwargs)
 
 
-def message_debug(index, *args):
-    return message_generic(MESSAGE_DEBUG, index, *args)
+def message_debug(index, *args, **kwargs):
+    return message_generic(MESSAGE_DEBUG, index, *args, **kwargs)
 
 
 def get_exception():
@@ -622,6 +623,8 @@ def parse_database_url(original_senzing_database_url):
     test_senzing_database_url = urlunparse(url_parts)
     if test_senzing_database_url != original_senzing_database_url:
         logging.warning(message_warning(891, original_senzing_database_url, test_senzing_database_url))
+
+    logging.info(message_info(164, **result))
 
     # Return result.
 
@@ -738,6 +741,15 @@ def get_configuration(args):
 
     if not result['g2_database_url_raw']:
         result['g2_database_url_raw'] = get_g2_database_url_raw(result.get("g2_database_url"))
+
+    # Add database components to configuration.
+
+    database_url = result.get('g2_database_url')
+    parsed_database_url = parse_database_url(database_url)
+    database_url_components = ['scheme', 'path', 'params', 'query', 'fragment', 'username', 'hostname', 'port', 'schema']
+    for database_url_component in database_url_components:
+        if parsed_database_url.get(database_url_component):
+            result["database-{0}".format(database_url_component)] = parsed_database_url.get(database_url_component)
 
     return result
 
@@ -1604,6 +1616,7 @@ def database_initialization(config):
         logging.error(message_error(695, scheme, database_url))
 
     return result
+
 
 def upload_aws_secrets_manager(config, base64_client_keystore):
     ''' Upload client keystore to AWS secrets manager '''
