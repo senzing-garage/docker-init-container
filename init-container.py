@@ -428,7 +428,6 @@ message_dictionary = {
     "161": "{0} - Backup of current {1}",
     "162": "{0} - Creating directory",
     "163": "{0} - Configuring for Senzing database cluster based on SENZING_ENGINE_CONFIGURATION_JSON",
-    "164": "Database URL components - scheme: {scheme}; path: {path}; params: {params}; query: {query}; fragment: {fragment}; username: {username}; hostname: {hostname}; port: {port}; schema: {schema};",
     "170": "Created new default config in SYS_CFG having ID {0}",
     "171": "Default config in SYS_CFG already exists having ID {0}",
     "180": "{0} - Postgresql detected.  Installing governor from {1}",
@@ -623,8 +622,6 @@ def parse_database_url(original_senzing_database_url):
     test_senzing_database_url = urlunparse(url_parts)
     if test_senzing_database_url != original_senzing_database_url:
         logging.warning(message_warning(891, original_senzing_database_url, test_senzing_database_url))
-
-    logging.info(message_info(164, **result))
 
     # Return result.
 
