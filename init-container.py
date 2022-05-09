@@ -485,30 +485,30 @@ message_dictionary = {
 }
 
 
-def message(index, *args, **kwargs):
+def message(index, *args):
     index_string = str(index)
     template = message_dictionary.get(index_string, "No message for index {0}.".format(index_string))
-    return template.format(*args, **kwargs)
+    return template.format(*args)
 
 
-def message_generic(generic_index, index, *args, **kwargs):
-    return "{0} {1}".format(message(generic_index, index), message(index, *args, **kwargs))
+def message_generic(generic_index, index, *args):
+    return "{0} {1}".format(message(generic_index, index), message(index, *args))
 
 
-def message_info(index, *args, **kwargs):
-    return message_generic(MESSAGE_INFO, index, *args, **kwargs)
+def message_info(index, *args):
+    return message_generic(MESSAGE_INFO, index, *args)
 
 
-def message_warning(index, *args, **kwargs):
-    return message_generic(MESSAGE_WARN, index, *args, **kwargs)
+def message_warning(index, *args):
+    return message_generic(MESSAGE_WARN, index, *args)
 
 
-def message_error(index, *args, **kwargs):
-    return message_generic(MESSAGE_ERROR, index, *args, **kwargs)
+def message_error(index, *args):
+    return message_generic(MESSAGE_ERROR, index, *args)
 
 
-def message_debug(index, *args, **kwargs):
-    return message_generic(MESSAGE_DEBUG, index, *args, **kwargs)
+def message_debug(index, *args):
+    return message_generic(MESSAGE_DEBUG, index, *args)
 
 
 def get_exception():
