@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed in 1.7.9
 
-- Added `SENZING_GENERATE_SSL_KEYSTORE`
+- Added variable for odbc.ini
 
 ## [1.7.8] - 2022-05-04
 
