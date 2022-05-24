@@ -52,7 +52,7 @@ except Exception:
 __all__ = []
 __version__ = "1.7.9"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-05-09'
+__updated__ = '2022-05-24'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/main/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -1095,7 +1095,7 @@ def change_module_ini(config):
         old_database_url = config_parser.get('SQL', 'CONNECTION')
         if new_database_url != old_database_url:
             config_parser['SQL']['CONNECTION'] = new_database_url
-            message = "Changed SQL.CONNECTION to {0}".format(new_database_url)
+            message = "Changed SQL.CONNECTION"
             logging.info(message_info(156, filename, message))
 
         # Update PIPELINE entires - These are hard coded because they are always the same inside the conainter, but can be overridden by SENZING_ENGINE_CONFIGURATION_JSON
@@ -1153,7 +1153,7 @@ def change_project_ini(config):
     if new_database_url != old_database_url:
         changed = True
         config_parser['g2']['G2Connection'] = new_database_url
-        message = "Changed g2.G2Connection to {0}".format(new_database_url)
+        message = "Changed g2.G2Connection"
         logging.info(message_info(156, filename, message))
 
     # Write out contents.
