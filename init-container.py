@@ -438,6 +438,7 @@ message_dictionary = {
     "185": "Initializing for MySQL",
     "186": "Initializing for PostgreSQL",
     "187": "{0} - Directory does not exist; no change.",
+    "188": "{0} - Cannot write to read-only filesystem; no change.",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -1546,6 +1547,8 @@ def install_senzing_postgresql_governor_file(config, senzing_governor_path):
                     senzing_governor_path)
             except urllib.error.URLError as err:
                 logging.warning(message_warning(301, governor_url, err))
+            except OSError:
+                logging.info(message_info(188, senzing_governor_path))
         else:
             logging.info(message_info(187, senzing_governor_path))
     else:
