@@ -50,9 +50,9 @@ except Exception:
 # Metadata
 
 __all__ = []
-__version__ = "1.7.10"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "1.8.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-05-24'
+__updated__ = '2022-07-01'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/main/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -1534,9 +1534,7 @@ def database_initialization_postgresql(config):
     return result
 
 
-def install_senzing_postgresql_governor(config):
-
-    senzing_governor_path = "{0}/python/senzing_governor.py".format(config.get("g2_dir"))
+def install_senzing_postgresql_governor_file(config, senzing_governor_path):
     if not os.path.exists(senzing_governor_path):
         governor_url = config.get("governor_url")
         logging.info(message_info(180, senzing_governor_path, governor_url))
@@ -1548,6 +1546,11 @@ def install_senzing_postgresql_governor(config):
             logging.warning(message_warning(301, governor_url, err))
     else:
         logging.info(message_info(181, senzing_governor_path))
+
+
+def install_senzing_postgresql_governor(config):
+    install_senzing_postgresql_governor_file(config, "{0}/python/senzing_governor.py".format(config.get("g2_dir")))
+    install_senzing_postgresql_governor_file(config, "{0}/sdk/python/senzing_governor.py".format(config.get("g2_dir")))
 
 
 def database_initialization(config):
