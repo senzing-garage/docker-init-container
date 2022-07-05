@@ -18,7 +18,7 @@ image.
 
     ```console
     export LD_LIBRARY_PATH=/opt/senzing/g2/lib:$LD_LIBRARY_PATH
-    export PYTHONPATH=/opt/senzing/g2/python
+    export PYTHONPATH=/opt/senzing/g2/sdk/python
     ```
 
 ## Install

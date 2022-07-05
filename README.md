@@ -153,7 +153,7 @@ These are "one-time tasks" which may already have been completed.
    Example:
 
     ```console
-    export PYTHONPATH=${SENZING_G2_DIR}/python
+    export PYTHONPATH=${SENZING_G2_DIR}/sdk/python
     ```
 
 1. :thinking: Set operating system specific environment variables.
