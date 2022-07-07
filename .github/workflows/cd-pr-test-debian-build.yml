@@ -9,7 +9,7 @@ jobs:
   buildInitContainer:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Print Environment Variables
         run: printenv
       - name: Git Merge With Master
@@ -60,7 +60,7 @@ jobs:
       - name: Persisting log
         id: persisting_log
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: workflow_log
           path: build_logs.txt
