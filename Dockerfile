@@ -1,11 +1,11 @@
-ARG BASE_IMAGE=debian:11.3-slim@sha256:f6957458017ec31c4e325a76f39d6323c4c21b0e31572efa006baa927a160891
+ARG BASE_IMAGE=senzing/senzingapi-runtime:3.1.0
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2022-06-27
+ENV REFRESHED_AT=2022-07-12
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
-      Version="1.7.9"
+      Version="2.0.0"
 
 # Define health check.
 
@@ -22,7 +22,6 @@ RUN apt update \
       gnupg2 \
       libaio1 \
       libodbc1 \
-      libssl1.1 \
       odbc-postgresql \
       python3 \
       python3-pip \
@@ -47,8 +46,7 @@ COPY ./init-container.py /app/
 ENV LD_LIBRARY_PATH=/opt/senzing/g2/lib:/opt/senzing/g2/lib/debian:/opt/IBM/db2/clidriver/lib
 ENV ODBCSYSINI=/etc/opt/senzing
 ENV PATH=${PATH}:/opt/senzing/g2/python:/opt/IBM/db2/clidriver/adm:/opt/IBM/db2/clidriver/bin
-ENV PYTHONPATH=/opt/senzing/g2/python
-ENV SENZING_ETC_PATH=/etc/opt/senzing
+ENV PYTHONPATH=/opt/senzing/g2/sdk/python
 
 # Install Java 11
 
@@ -69,9 +67,8 @@ USER 1001:1001
 ENV LD_LIBRARY_PATH=/opt/senzing/g2/lib:/opt/senzing/g2/lib/debian:/opt/IBM/db2/clidriver/lib
 ENV ODBCSYSINI=/etc/opt/senzing
 ENV PATH=${PATH}:/opt/senzing/g2/python:/opt/IBM/db2/clidriver/adm:/opt/IBM/db2/clidriver/bin
-ENV PYTHONPATH=/opt/senzing/g2/python
+ENV PYTHONPATH=/opt/senzing/g2/sdk/python
 ENV SENZING_DOCKER_LAUNCHED=true
-ENV SENZING_ETC_PATH=/etc/opt/senzing
 
 # Set enviroment variables.
 

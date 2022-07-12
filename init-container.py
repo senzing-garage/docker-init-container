@@ -50,9 +50,9 @@ except Exception:
 # Metadata
 
 __all__ = []
-__version__ = "1.7.10"  # See https://www.python.org/dev/peps/pep-0396/
+__version__ = "2.0.0"  # See https://www.python.org/dev/peps/pep-0396/
 __date__ = '2019-07-16'
-__updated__ = '2022-05-24'
+__updated__ = '2022-07-12'
 
 SENZING_PRODUCT_ID = "5007"  # See https://github.com/Senzing/knowledge-base/blob/main/lists/senzing-product-ids.md
 log_format = '%(asctime)s %(message)s'
@@ -437,6 +437,8 @@ message_dictionary = {
     "184": "Initializing for MS SQL",
     "185": "Initializing for MySQL",
     "186": "Initializing for PostgreSQL",
+    "187": "{0} - Directory does not exist; no change.",
+    "188": "{0} - Cannot write to read-only filesystem; no change.",
     "292": "Configuration change detected.  Old: {0} New: {1}",
     "293": "For information on warnings and errors, see https://github.com/Senzing/stream-loader#errors",
     "294": "Version: {0}  Updated: {1}",
@@ -1534,20 +1536,28 @@ def database_initialization_postgresql(config):
     return result
 
 
-def install_senzing_postgresql_governor(config):
-
-    senzing_governor_path = "{0}/python/senzing_governor.py".format(config.get("g2_dir"))
+def install_senzing_postgresql_governor_file(config, senzing_governor_path):
     if not os.path.exists(senzing_governor_path):
-        governor_url = config.get("governor_url")
-        logging.info(message_info(180, senzing_governor_path, governor_url))
-        try:
-            urllib.request.urlretrieve(
-                governor_url,
-                senzing_governor_path)
-        except urllib.error.URLError as err:
-            logging.warning(message_warning(301, governor_url, err))
+        if os.path.exists(os.path.dirname(senzing_governor_path)):
+            governor_url = config.get("governor_url")
+            logging.info(message_info(180, senzing_governor_path, governor_url))
+            try:
+                urllib.request.urlretrieve(
+                    governor_url,
+                    senzing_governor_path)
+            except urllib.error.URLError as err:
+                logging.warning(message_warning(301, governor_url, err))
+            except OSError:
+                logging.info(message_info(188, senzing_governor_path))
+        else:
+            logging.info(message_info(187, senzing_governor_path))
     else:
         logging.info(message_info(181, senzing_governor_path))
+
+
+def install_senzing_postgresql_governor(config):
+    install_senzing_postgresql_governor_file(config, "{0}/python/senzing_governor.py".format(config.get("g2_dir")))
+    install_senzing_postgresql_governor_file(config, "{0}/sdk/python/senzing_governor.py".format(config.get("g2_dir")))
 
 
 def database_initialization(config):

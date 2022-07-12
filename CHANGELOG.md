@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2022-07-12
+
+### Changed in 2.0.0
+
+- Migrated to `senzing/senzingapi-runtime` as Docker base images
+
+## [1.8.0] - 2022-07-01
+
+### Changed in 1.8.0
+
+- Copy `senzing_governor.py` to `g2/sdk/python` as well as `g2/python`
+
 ## [1.7.11] - 2022-06-08
 
 ### Changed in 1.7.11
