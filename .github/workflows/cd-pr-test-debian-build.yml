@@ -15,8 +15,12 @@ jobs:
         uses: actions/checkout@v3
       - name: Print environment variables
         run: printenv
+      - id: extract_branch        
+        name: Extract branch name
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        shell: bash
       - name: Print Git Ref
-        run: echo "${{ github.ref_name }}"
+        run: echo "${{ steps.extract_branch.outputs.branch }}"
       - name: Git Status
         id: git_status
         run: git status
