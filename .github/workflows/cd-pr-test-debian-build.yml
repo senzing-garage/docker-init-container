@@ -1,4 +1,4 @@
-name: Pull Request Test Init Container Build on Debian
+name: Pull Request Tests
 
 on:
   pull_request:
@@ -6,6 +6,22 @@ on:
       - main
 
 jobs:
+
+  mergeWithMain:
+    name: Test merging with main branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print environment variables
+        run: printenv
+      - name: Git Status
+        id: git_status
+        run: git status
+      - id: git_conditional_merge
+        name: Git Merge With Master
+        run: git merge origin/main
+        uses: actions/checkout@v3        
+
+
   buildInitContainer:
     runs-on: ubuntu-latest
     steps:
