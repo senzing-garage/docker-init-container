@@ -12,15 +12,15 @@ jobs:
       - uses: actions/checkout@v3
       - name: Print Environment Variables
         run: printenv
+      - name: Git Status
+        id: git_status
+        run: git status
       - name: Git Merge With Master
         id: git_conditional_merge
         run: git merge origin/main
       - name: Build Senzing Init Container
         id: build_init_container
-        run: |
-          make \
-            BASE_IMAGE="senzing/senzing-base:1.5.2" \
-            docker-build
+        run: make docker-build
   logPrDockerInitContainer:
     needs: buildInitContainer
     if: always()
