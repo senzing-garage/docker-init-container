@@ -30,7 +30,6 @@ jobs:
         name: Git Merge With Master
         run: git merge origin/main
 
-
   buildInitContainer:
     runs-on: ubuntu-latest
     steps:
