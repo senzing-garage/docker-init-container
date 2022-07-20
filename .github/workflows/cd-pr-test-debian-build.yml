@@ -21,6 +21,7 @@ jobs:
       - name: Build Senzing Init Container
         id: build_init_container
         run: make docker-build
+        
   logPrDockerInitContainer:
     needs: buildInitContainer
     if: always()
