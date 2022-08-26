@@ -1,7 +1,7 @@
-ARG BASE_IMAGE=senzing/senzingapi-runtime:3.1.1
+ARG BASE_IMAGE=senzing/senzingapi-runtime:3.2.0
 FROM ${BASE_IMAGE}
 
-ENV REFRESHED_AT=2022-07-20
+ENV REFRESHED_AT=2022-08-25
 
 LABEL Name="senzing/init-container" \
       Maintainer="support@senzing.com" \
