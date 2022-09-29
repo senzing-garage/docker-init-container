@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2022-09-29
+
+### Changed in 2.0.3
+
+- In `Dockerfile`, updated FROM instruction to `senzing/senzingapi-runtime:3.3.0`
+
 ## [2.0.2] - 2022-08-25
 
 ### Changed in 2.0.2
@@ -58,43 +64,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed in 1.7.7
 
- - Support for `libodbc1`
+- Support for `libodbc1`
 
 ## [1.7.6] - 2022-04-29
 
 ### Changed in 1.7.6
 
- - Support for ssl authentication
+- Support for ssl authentication
 
 ## [1.7.5] - 2022-03-17
 
 ### Changed in 1.7.5
 
- - Support for `libcrypto` and `libssl`
+- Support for `libcrypto` and `libssl`
 
 ## [1.7.4] - 2022-02-25
 
 ### Changed in 1.7.4
 
- - Support for enhanced v3 python package styles
+- Support for enhanced v3 python package styles
 
 ## [1.7.3] - 2022-02-11
 
 ### Changed in 1.7.3
 
- - Improve support for Senzing v2 and v3 python package styles
+- Improve support for Senzing v2 and v3 python package styles
 
 ## [1.7.2] - 2022-02-08
 
 ### Changed in 1.7.2
 
- - Update base image to Debian 11.2
+- Update base image to Debian 11.2
 
 ## [1.7.1] - 2022-02-04
 
 ### Changed in 1.7.1
 
- - Support for Senzing v2 and v3 python package styles
+- Support for Senzing v2 and v3 python package styles
 
 ## [1.7.0] - 2022-01-11
 
