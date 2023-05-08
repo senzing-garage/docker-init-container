@@ -166,7 +166,7 @@ These are "one-time tasks" which may already have been completed.
      ${SENZING_DOWNLOAD_FILE} --help
    ```
 
-1. For more examples of use, see [Examples of CLI](#examples-of-cli).
+1. For more examples of use, see [Examples of CLI](docs/examples.md#examples-of-cli).
 
 ## Demonstrate using Docker
 
@@ -242,7 +242,7 @@ Unset environment variables have no effect on the
       senzing/init-container
     ```
 
-1. For more examples of use, see [Examples of Docker](#examples-of-docker).
+1. For more examples of use, see [Examples of Docker](docs/examples.md#examples-of-docker).
 
 ## Configuration
 
