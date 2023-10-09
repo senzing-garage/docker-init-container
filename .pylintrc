@@ -8,6 +8,7 @@ disable=
     import-error,
     import-outside-toplevel,
     invalid-name,
+    line-too-long,
     missing-class-docstring,
     missing-function-docstring,
     missing-module-docstring,
@@ -20,7 +21,7 @@ disable=
     unnecessary-dict-index-lookup,
     unspecified-encoding,
     unused-argument,
-    line-too-long,
+    used-before-assignment,
 ignore=
     __init__.py,
 notes=
