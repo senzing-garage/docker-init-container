@@ -212,7 +212,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added in 1.6.6
 
-- Critical [bug fix](https://github.com/Senzing/docker-init-container/issues/104) for bug introduced in 1.6.5:
+- Critical [bug fix](https://github.com/senzing-garage/docker-init-container/issues/104) for bug introduced in 1.6.5:
 
 ## [1.6.5] - 2021-02-01
 
