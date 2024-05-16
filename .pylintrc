@@ -12,6 +12,7 @@ disable=
     missing-class-docstring,
     missing-function-docstring,
     missing-module-docstring,
+    possibly-used-before-assignment,
     protected-access,
     redefined-outer-name,
     too-few-public-methods,
