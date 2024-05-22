@@ -4,8 +4,8 @@ FROM ${BASE_IMAGE}
 ENV REFRESHED_AT=2024-05-22
 
 LABEL Name="senzing/init-container" \
-      Maintainer="support@senzing.com" \
-      Version="2.0.5"
+  Maintainer="support@senzing.com" \
+  Version="2.0.9"
 
 # Define health check.
 
@@ -18,23 +18,23 @@ USER root
 # Install packages via apt.
 
 RUN apt update \
- && apt -y install \
-      gnupg2 \
-      libaio1 \
-      libodbc1 \
-      odbc-postgresql \
-      python3 \
-      python3-pip \
-      software-properties-common \
-      wget \
- && rm -rf /var/lib/apt/lists/*
+  && apt -y install \
+  gnupg2 \
+  libaio1 \
+  libodbc1 \
+  odbc-postgresql \
+  python3 \
+  python3-pip \
+  software-properties-common \
+  wget \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install packages via PIP.
 
 COPY requirements.txt .
 RUN pip3 install --upgrade pip \
- && pip3 install -r requirements.txt \
- && rm /requirements.txt
+  && pip3 install -r requirements.txt \
+  && rm /requirements.txt
 
 # Copy files from repository.
 
@@ -51,13 +51,13 @@ ENV PYTHONPATH=/opt/senzing/g2/sdk/python
 # Install Java 11
 
 RUN mkdir -p /etc/apt/keyrings \
- && wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public > /etc/apt/keyrings/adoptium.asc
+  && wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public > /etc/apt/keyrings/adoptium.asc
 
 RUN echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" >> /etc/apt/sources.list
 
 RUN apt update \
- && apt install -y temurin-11-jdk \
- && rm -rf /var/lib/apt/lists/*
+  && apt install -y temurin-11-jdk \
+  && rm -rf /var/lib/apt/lists/*
 
 # Make non-root container.
 
