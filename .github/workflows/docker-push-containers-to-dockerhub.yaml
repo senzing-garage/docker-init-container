@@ -20,5 +20,5 @@ jobs:
           image-repository: senzing/init-container
           image-tag: ${{ github.ref_name }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
-          platforms: "linux/amd64,linux/arm64"
+          push: true
           username: ${{ secrets.DOCKERHUB_USERNAME }}
