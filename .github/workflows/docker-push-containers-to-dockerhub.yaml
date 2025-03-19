@@ -16,7 +16,6 @@ jobs:
       - name: build docker image and push to DockerHub
         uses: senzing-factory/github-action-docker-buildx-build@v2
         with:
-          build-options: "--push"
           image-repository: senzing/init-container
           image-tag: ${{ github.ref_name }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
