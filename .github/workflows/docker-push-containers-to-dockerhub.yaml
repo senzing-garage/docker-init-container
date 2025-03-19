@@ -14,11 +14,10 @@ jobs:
 
     steps:
       - name: build docker image and push to DockerHub
-        uses: senzing-factory/github-action-docker-buildx-build@v1
+        uses: senzing-factory/github-action-docker-buildx-build@v2
         with:
-          build-options: "--push"
           image-repository: senzing/init-container
           image-tag: ${{ github.ref_name }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
-          platforms: "linux/amd64,linux/arm64"
+          push: true
           username: ${{ secrets.DOCKERHUB_USERNAME }}
