@@ -181,7 +181,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added in 1.6.13
 
-- Changed CMD to `SENZING_SUBCOMMAND` enviroment variable
+- Changed CMD to `SENZING_SUBCOMMAND` environment variable
 
 ## [1.6.12] - 2021-07-15
 
@@ -281,7 +281,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed in 1.5.10
 
-- Accommodate changes in Senzing 2.3.0.  Optional processing of `G2Project.ini`
+- Accommodate changes in Senzing 2.3.0. Optional processing of `G2Project.ini`
 
 ## [1.5.9] - 2020-09-28
 
@@ -358,7 +358,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added in 1.4.1
 
-- init-container.py subcommands:  initialize-files, initialize-database
+- init-container.py subcommands: initialize-files, initialize-database
 - No change to docker image behavior.
 
 ## [1.4.0] - 2019-11-13
