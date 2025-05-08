@@ -21,8 +21,8 @@ import sys
 import time
 import urllib
 import urllib.request
-from shutil import which
 from pathlib import Path
+from shutil import which
 from urllib.parse import urlparse, urlunparse
 
 # Determine "Major" version of Senzing SDK.
@@ -741,7 +741,8 @@ def get_configuration(args):
 
     booleans = [
         "debug",
-        "enable_db2" "enable_mssql",
+        "enable_db2",
+        "enable_mssql",
         "enable_mysql",
         "enable_postgresql",
         "generate_ssl_keystore",
