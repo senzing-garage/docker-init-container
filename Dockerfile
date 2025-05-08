@@ -71,7 +71,7 @@ ENV PATH=${PATH}:/opt/senzing/g2/python:/opt/IBM/db2/clidriver/adm:/opt/IBM/db2/
 ENV PYTHONPATH=/opt/senzing/g2/sdk/python
 ENV SENZING_DOCKER_LAUNCHED=true
 
-# Set enviroment variables.
+# Set environment variables.
 
 ENV SENZING_SUBCOMMAND=initialize
 
