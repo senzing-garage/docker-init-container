@@ -157,7 +157,7 @@ configuration_locator = {
         "cli": "generate-ssl-keystore",
     },
     "governor_url": {
-        "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/main/senzing_governor.py",
+        "default": "https://raw.githubusercontent.com/Senzing/governor-postgresql-transaction-id/refs/heads/main/src/senzing_governor.py",
         "env": "SENZING_GOVERNOR_URL",
         "cli": "governor-url",
     },

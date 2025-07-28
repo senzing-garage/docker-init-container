@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [2.0.11] - 2024-07-28
+
+### Changed in 2.0.11`
+
+- In `Dockerfile`, updated FROM instruction to `senzing/senzingapi-runtime:3.12.8`
+- Updated URL to `senzing_governor.py`
+
 ## [2.0.10] - 2024-06-24
 
 ### Changed in 2.0.10
